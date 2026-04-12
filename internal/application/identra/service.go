@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math/big"
+	"sort"
 	"strings"
 	"time"
 
@@ -174,9 +175,14 @@ func (s *Service) ListOAuthProviders(
 	_ context.Context,
 	_ *identra_v1_pb.ListOAuthProvidersRequest,
 ) (*identra_v1_pb.ListOAuthProvidersResponse, error) {
-	var providers []*identra_v1_pb.OAuthProviderStatus
-
+	names := make([]string, 0, len(supportedProviders))
 	for name := range supportedProviders {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	providers := make([]*identra_v1_pb.OAuthProviderStatus, 0, len(names))
+	for _, name := range names {
 		ps := &identra_v1_pb.OAuthProviderStatus{Name: name}
 
 		switch name {
