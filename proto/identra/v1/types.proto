@@ -128,6 +128,24 @@ message OAuthConnection {
   string provider_user_id = 2;
 }
 
+message ListOAuthProvidersRequest {}
+
+// OAuthProviderStatus describes whether a single OAuth provider is available.
+message OAuthProviderStatus {
+  // Provider name, e.g. "github".
+  string name = 1;
+  // Whether the provider is fully configured and ready for use.
+  bool enabled = 2;
+  // Machine-readable reason when the provider is disabled,
+  // e.g. "missing_client_id", "missing_client_secret".
+  optional string reason = 3;
+}
+
+message ListOAuthProvidersResponse {
+  // All supported OAuth providers with their availability status.
+  repeated OAuthProviderStatus providers = 1;
+}
+
 message GetCurrentUserLoginInfoRequest {
   // Access token for the currently authenticated user
   string access_token = 1;

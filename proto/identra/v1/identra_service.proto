@@ -52,6 +52,13 @@ service IdentraService {
     };
   }
 
+  // ListOAuthProviders returns all supported OAuth providers with their
+  // availability status so that upstream services can conditionally render
+  // login options.
+  rpc ListOAuthProviders(ListOAuthProvidersRequest) returns (ListOAuthProvidersResponse) {
+    option (google.api.http) = {get: "/oauth/providers"};
+  }
+
   // GetCurrentUserLoginInfo returns the current user's linked login methods,
   // e.g. bound email and OAuth provider identifiers.
   rpc GetCurrentUserLoginInfo(GetCurrentUserLoginInfoRequest) returns (GetCurrentUserLoginInfoResponse) {

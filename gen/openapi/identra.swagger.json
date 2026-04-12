@@ -200,6 +200,29 @@
         ]
       }
     },
+    "/oauth/providers": {
+      "get": {
+        "summary": "ListOAuthProviders returns all supported OAuth providers with their\navailability status so that upstream services can conditionally render\nlogin options.",
+        "operationId": "IdentraService_ListOAuthProviders",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListOAuthProvidersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "IdentraService"
+        ]
+      }
+    },
     "/oauth/url": {
       "get": {
         "operationId": "IdentraService_GetOAuthAuthorizationURL",
@@ -467,6 +490,19 @@
       },
       "title": "JSON Web Key represents a single key in the JWKS"
     },
+    "v1ListOAuthProvidersResponse": {
+      "type": "object",
+      "properties": {
+        "providers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1OAuthProviderStatus"
+          },
+          "description": "All supported OAuth providers with their availability status."
+        }
+      }
+    },
     "v1LoginByEmailCodeRequest": {
       "type": "object",
       "properties": {
@@ -549,6 +585,24 @@
         }
       },
       "description": "OAuthConnection describes one OAuth identity linked to the user."
+    },
+    "v1OAuthProviderStatus": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Provider name, e.g. \"github\"."
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the provider is fully configured and ready for use."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Machine-readable reason when the provider is disabled,\ne.g. \"missing_client_id\", \"missing_client_secret\"."
+        }
+      },
+      "description": "OAuthProviderStatus describes whether a single OAuth provider is available."
     },
     "v1RefreshTokenRequest": {
       "type": "object",

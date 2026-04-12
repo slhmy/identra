@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math/big"
+	"sort"
 	"strings"
 	"time"
 
@@ -168,6 +169,39 @@ func generateJWKSETag(jwks *identra_v1_pb.GetJWKSResponse) string {
 	// Use the full 32 bytes (256 bits) of the SHA-256 hash to minimize collision risk
 	// Quoted per HTTP ETag specification (RFC 7232)
 	return fmt.Sprintf(`"%x"`, hash[:])
+}
+
+func (s *Service) ListOAuthProviders(
+	_ context.Context,
+	_ *identra_v1_pb.ListOAuthProvidersRequest,
+) (*identra_v1_pb.ListOAuthProvidersResponse, error) {
+	names := make([]string, 0, len(supportedProviders))
+	for name := range supportedProviders {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	providers := make([]*identra_v1_pb.OAuthProviderStatus, 0, len(names))
+	for _, name := range names {
+		ps := &identra_v1_pb.OAuthProviderStatus{Name: name}
+
+		switch name {
+		case "github":
+			if s.githubOAuthConfig.ClientID == "" {
+				reason := "missing_client_id"
+				ps.Reason = &reason
+			} else if s.githubOAuthConfig.ClientSecret == "" {
+				reason := "missing_client_secret"
+				ps.Reason = &reason
+			} else {
+				ps.Enabled = true
+			}
+		}
+
+		providers = append(providers, ps)
+	}
+
+	return &identra_v1_pb.ListOAuthProvidersResponse{Providers: providers}, nil
 }
 
 func (s *Service) GetOAuthAuthorizationURL(
