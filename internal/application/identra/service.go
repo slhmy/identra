@@ -733,7 +733,7 @@ func (s *Service) maybeFillOAuthEmail(ctx context.Context, provider UserInfoProv
 }
 
 func buildUserStore(ctx context.Context, cfg Config) (domain.UserStore, func(context.Context) error, error) {
-	repoType := strings.ToLower(strings.TrimSpace(cfg.PresistenceType))
+	repoType := strings.ToLower(strings.TrimSpace(cfg.PersistenceType))
 	switch repoType {
 	case "mongo", "mongodb":
 		mongoCfg := cfg.MongoClient
@@ -766,7 +766,7 @@ func buildUserStore(ctx context.Context, cfg Config) (domain.UserStore, func(con
 		}
 		return persistence.NewGormUserStore(db), func(context.Context) error { return nil }, nil
 	default:
-		return nil, nil, fmt.Errorf("unsupported user repository type: %s", cfg.PresistenceType)
+		return nil, nil, fmt.Errorf("unsupported user repository type: %s", cfg.PersistenceType)
 	}
 }
 
