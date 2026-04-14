@@ -8,7 +8,7 @@ token_expiration = "24h"
 [redis]
 urls = "localhost:6379"
 
-[presistence]
+[persistence]
 type = "gorm"
 
 [persistence.gorm]

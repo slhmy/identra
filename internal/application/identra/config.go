@@ -24,7 +24,7 @@ type Config struct {
 	GORMClient                     *gorm.Config
 	MongoClient                    *mongo.Config
 	RedisClient                    *redis.Config
-	PresistenceType                string
+	PersistenceType                string
 }
 
 const (
