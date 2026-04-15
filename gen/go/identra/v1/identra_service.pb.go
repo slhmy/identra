@@ -26,7 +26,8 @@ var File_identra_v1_identra_service_proto protoreflect.FileDescriptor
 const file_identra_v1_identra_service_proto_rawDesc = "" +
 	"\n" +
 	" identra/v1/identra_service.proto\x12\n" +
-	"identra.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x16identra/v1/types.proto2\xca\t\n" +
+	"identra.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x16identra/v1/types.proto2\xcf\n" +
+	"\n" +
 	"\x0eIdentraService\x12b\n" +
 	"\aGetJWKS\x12\x1a.identra.v1.GetJWKSRequest\x1a\x1b.identra.v1.GetJWKSResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/.well-known/jwks.json\x12\x89\x01\n" +
 	"\x18GetOAuthAuthorizationURL\x12+.identra.v1.GetOAuthAuthorizationURLRequest\x1a,.identra.v1.GetOAuthAuthorizationURLResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
@@ -34,7 +35,8 @@ const file_identra_v1_identra_service_proto_rawDesc = "" +
 	"\fLoginByOAuth\x12\x1f.identra.v1.LoginByOAuthRequest\x1a .identra.v1.LoginByOAuthResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/oauth/login\x12r\n" +
 	"\x0fBindUserByOAuth\x12\".identra.v1.BindUserByOAuthRequest\x1a#.identra.v1.BindUserByOAuthResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/oauth/bind\x12{\n" +
 	"\x12SendLoginEmailCode\x12%.identra.v1.SendLoginEmailCodeRequest\x1a&.identra.v1.SendLoginEmailCodeResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/email/code\x12v\n" +
-	"\x10LoginByEmailCode\x12#.identra.v1.LoginByEmailCodeRequest\x1a$.identra.v1.LoginByEmailCodeResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/email/login\x12v\n" +
+	"\x10LoginByEmailCode\x12#.identra.v1.LoginByEmailCodeRequest\x1a$.identra.v1.LoginByEmailCodeResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/email/login\x12\x82\x01\n" +
+	"\x12RegisterByPassword\x12%.identra.v1.RegisterByPasswordRequest\x1a&.identra.v1.RegisterByPasswordResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/password/register\x12v\n" +
 	"\x0fLoginByPassword\x12\".identra.v1.LoginByPasswordRequest\x1a#.identra.v1.LoginByPasswordResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/password/login\x12l\n" +
 	"\fRefreshToken\x12\x1f.identra.v1.RefreshTokenRequest\x1a .identra.v1.RefreshTokenResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/token/refresh\x12}\n" +
 	"\x12ListOAuthProviders\x12%.identra.v1.ListOAuthProvidersRequest\x1a&.identra.v1.ListOAuthProvidersResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/oauth/providers\x12\x8d\x01\n" +
@@ -47,20 +49,22 @@ var file_identra_v1_identra_service_proto_goTypes = []any{
 	(*BindUserByOAuthRequest)(nil),           // 3: identra.v1.BindUserByOAuthRequest
 	(*SendLoginEmailCodeRequest)(nil),        // 4: identra.v1.SendLoginEmailCodeRequest
 	(*LoginByEmailCodeRequest)(nil),          // 5: identra.v1.LoginByEmailCodeRequest
-	(*LoginByPasswordRequest)(nil),           // 6: identra.v1.LoginByPasswordRequest
-	(*RefreshTokenRequest)(nil),              // 7: identra.v1.RefreshTokenRequest
-	(*ListOAuthProvidersRequest)(nil),        // 8: identra.v1.ListOAuthProvidersRequest
-	(*GetCurrentUserLoginInfoRequest)(nil),   // 9: identra.v1.GetCurrentUserLoginInfoRequest
-	(*GetJWKSResponse)(nil),                  // 10: identra.v1.GetJWKSResponse
-	(*GetOAuthAuthorizationURLResponse)(nil), // 11: identra.v1.GetOAuthAuthorizationURLResponse
-	(*LoginByOAuthResponse)(nil),             // 12: identra.v1.LoginByOAuthResponse
-	(*BindUserByOAuthResponse)(nil),          // 13: identra.v1.BindUserByOAuthResponse
-	(*SendLoginEmailCodeResponse)(nil),       // 14: identra.v1.SendLoginEmailCodeResponse
-	(*LoginByEmailCodeResponse)(nil),         // 15: identra.v1.LoginByEmailCodeResponse
-	(*LoginByPasswordResponse)(nil),          // 16: identra.v1.LoginByPasswordResponse
-	(*RefreshTokenResponse)(nil),             // 17: identra.v1.RefreshTokenResponse
-	(*ListOAuthProvidersResponse)(nil),       // 18: identra.v1.ListOAuthProvidersResponse
-	(*GetCurrentUserLoginInfoResponse)(nil),  // 19: identra.v1.GetCurrentUserLoginInfoResponse
+	(*RegisterByPasswordRequest)(nil),        // 6: identra.v1.RegisterByPasswordRequest
+	(*LoginByPasswordRequest)(nil),           // 7: identra.v1.LoginByPasswordRequest
+	(*RefreshTokenRequest)(nil),              // 8: identra.v1.RefreshTokenRequest
+	(*ListOAuthProvidersRequest)(nil),        // 9: identra.v1.ListOAuthProvidersRequest
+	(*GetCurrentUserLoginInfoRequest)(nil),   // 10: identra.v1.GetCurrentUserLoginInfoRequest
+	(*GetJWKSResponse)(nil),                  // 11: identra.v1.GetJWKSResponse
+	(*GetOAuthAuthorizationURLResponse)(nil), // 12: identra.v1.GetOAuthAuthorizationURLResponse
+	(*LoginByOAuthResponse)(nil),             // 13: identra.v1.LoginByOAuthResponse
+	(*BindUserByOAuthResponse)(nil),          // 14: identra.v1.BindUserByOAuthResponse
+	(*SendLoginEmailCodeResponse)(nil),       // 15: identra.v1.SendLoginEmailCodeResponse
+	(*LoginByEmailCodeResponse)(nil),         // 16: identra.v1.LoginByEmailCodeResponse
+	(*RegisterByPasswordResponse)(nil),       // 17: identra.v1.RegisterByPasswordResponse
+	(*LoginByPasswordResponse)(nil),          // 18: identra.v1.LoginByPasswordResponse
+	(*RefreshTokenResponse)(nil),             // 19: identra.v1.RefreshTokenResponse
+	(*ListOAuthProvidersResponse)(nil),       // 20: identra.v1.ListOAuthProvidersResponse
+	(*GetCurrentUserLoginInfoResponse)(nil),  // 21: identra.v1.GetCurrentUserLoginInfoResponse
 }
 var file_identra_v1_identra_service_proto_depIdxs = []int32{
 	0,  // 0: identra.v1.IdentraService.GetJWKS:input_type -> identra.v1.GetJWKSRequest
@@ -69,22 +73,24 @@ var file_identra_v1_identra_service_proto_depIdxs = []int32{
 	3,  // 3: identra.v1.IdentraService.BindUserByOAuth:input_type -> identra.v1.BindUserByOAuthRequest
 	4,  // 4: identra.v1.IdentraService.SendLoginEmailCode:input_type -> identra.v1.SendLoginEmailCodeRequest
 	5,  // 5: identra.v1.IdentraService.LoginByEmailCode:input_type -> identra.v1.LoginByEmailCodeRequest
-	6,  // 6: identra.v1.IdentraService.LoginByPassword:input_type -> identra.v1.LoginByPasswordRequest
-	7,  // 7: identra.v1.IdentraService.RefreshToken:input_type -> identra.v1.RefreshTokenRequest
-	8,  // 8: identra.v1.IdentraService.ListOAuthProviders:input_type -> identra.v1.ListOAuthProvidersRequest
-	9,  // 9: identra.v1.IdentraService.GetCurrentUserLoginInfo:input_type -> identra.v1.GetCurrentUserLoginInfoRequest
-	10, // 10: identra.v1.IdentraService.GetJWKS:output_type -> identra.v1.GetJWKSResponse
-	11, // 11: identra.v1.IdentraService.GetOAuthAuthorizationURL:output_type -> identra.v1.GetOAuthAuthorizationURLResponse
-	12, // 12: identra.v1.IdentraService.LoginByOAuth:output_type -> identra.v1.LoginByOAuthResponse
-	13, // 13: identra.v1.IdentraService.BindUserByOAuth:output_type -> identra.v1.BindUserByOAuthResponse
-	14, // 14: identra.v1.IdentraService.SendLoginEmailCode:output_type -> identra.v1.SendLoginEmailCodeResponse
-	15, // 15: identra.v1.IdentraService.LoginByEmailCode:output_type -> identra.v1.LoginByEmailCodeResponse
-	16, // 16: identra.v1.IdentraService.LoginByPassword:output_type -> identra.v1.LoginByPasswordResponse
-	17, // 17: identra.v1.IdentraService.RefreshToken:output_type -> identra.v1.RefreshTokenResponse
-	18, // 18: identra.v1.IdentraService.ListOAuthProviders:output_type -> identra.v1.ListOAuthProvidersResponse
-	19, // 19: identra.v1.IdentraService.GetCurrentUserLoginInfo:output_type -> identra.v1.GetCurrentUserLoginInfoResponse
-	10, // [10:20] is the sub-list for method output_type
-	0,  // [0:10] is the sub-list for method input_type
+	6,  // 6: identra.v1.IdentraService.RegisterByPassword:input_type -> identra.v1.RegisterByPasswordRequest
+	7,  // 7: identra.v1.IdentraService.LoginByPassword:input_type -> identra.v1.LoginByPasswordRequest
+	8,  // 8: identra.v1.IdentraService.RefreshToken:input_type -> identra.v1.RefreshTokenRequest
+	9,  // 9: identra.v1.IdentraService.ListOAuthProviders:input_type -> identra.v1.ListOAuthProvidersRequest
+	10, // 10: identra.v1.IdentraService.GetCurrentUserLoginInfo:input_type -> identra.v1.GetCurrentUserLoginInfoRequest
+	11, // 11: identra.v1.IdentraService.GetJWKS:output_type -> identra.v1.GetJWKSResponse
+	12, // 12: identra.v1.IdentraService.GetOAuthAuthorizationURL:output_type -> identra.v1.GetOAuthAuthorizationURLResponse
+	13, // 13: identra.v1.IdentraService.LoginByOAuth:output_type -> identra.v1.LoginByOAuthResponse
+	14, // 14: identra.v1.IdentraService.BindUserByOAuth:output_type -> identra.v1.BindUserByOAuthResponse
+	15, // 15: identra.v1.IdentraService.SendLoginEmailCode:output_type -> identra.v1.SendLoginEmailCodeResponse
+	16, // 16: identra.v1.IdentraService.LoginByEmailCode:output_type -> identra.v1.LoginByEmailCodeResponse
+	17, // 17: identra.v1.IdentraService.RegisterByPassword:output_type -> identra.v1.RegisterByPasswordResponse
+	18, // 18: identra.v1.IdentraService.LoginByPassword:output_type -> identra.v1.LoginByPasswordResponse
+	19, // 19: identra.v1.IdentraService.RefreshToken:output_type -> identra.v1.RefreshTokenResponse
+	20, // 20: identra.v1.IdentraService.ListOAuthProviders:output_type -> identra.v1.ListOAuthProvidersResponse
+	21, // 21: identra.v1.IdentraService.GetCurrentUserLoginInfo:output_type -> identra.v1.GetCurrentUserLoginInfoResponse
+	11, // [11:22] is the sub-list for method output_type
+	0,  // [0:11] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

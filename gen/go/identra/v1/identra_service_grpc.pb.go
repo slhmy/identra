@@ -25,6 +25,7 @@ const (
 	IdentraService_BindUserByOAuth_FullMethodName          = "/identra.v1.IdentraService/BindUserByOAuth"
 	IdentraService_SendLoginEmailCode_FullMethodName       = "/identra.v1.IdentraService/SendLoginEmailCode"
 	IdentraService_LoginByEmailCode_FullMethodName         = "/identra.v1.IdentraService/LoginByEmailCode"
+	IdentraService_RegisterByPassword_FullMethodName       = "/identra.v1.IdentraService/RegisterByPassword"
 	IdentraService_LoginByPassword_FullMethodName          = "/identra.v1.IdentraService/LoginByPassword"
 	IdentraService_RefreshToken_FullMethodName             = "/identra.v1.IdentraService/RefreshToken"
 	IdentraService_ListOAuthProviders_FullMethodName       = "/identra.v1.IdentraService/ListOAuthProviders"
@@ -42,6 +43,7 @@ type IdentraServiceClient interface {
 	BindUserByOAuth(ctx context.Context, in *BindUserByOAuthRequest, opts ...grpc.CallOption) (*BindUserByOAuthResponse, error)
 	SendLoginEmailCode(ctx context.Context, in *SendLoginEmailCodeRequest, opts ...grpc.CallOption) (*SendLoginEmailCodeResponse, error)
 	LoginByEmailCode(ctx context.Context, in *LoginByEmailCodeRequest, opts ...grpc.CallOption) (*LoginByEmailCodeResponse, error)
+	RegisterByPassword(ctx context.Context, in *RegisterByPasswordRequest, opts ...grpc.CallOption) (*RegisterByPasswordResponse, error)
 	LoginByPassword(ctx context.Context, in *LoginByPasswordRequest, opts ...grpc.CallOption) (*LoginByPasswordResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	// ListOAuthProviders returns all supported OAuth providers with their
@@ -121,6 +123,16 @@ func (c *identraServiceClient) LoginByEmailCode(ctx context.Context, in *LoginBy
 	return out, nil
 }
 
+func (c *identraServiceClient) RegisterByPassword(ctx context.Context, in *RegisterByPasswordRequest, opts ...grpc.CallOption) (*RegisterByPasswordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterByPasswordResponse)
+	err := c.cc.Invoke(ctx, IdentraService_RegisterByPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *identraServiceClient) LoginByPassword(ctx context.Context, in *LoginByPasswordRequest, opts ...grpc.CallOption) (*LoginByPasswordResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LoginByPasswordResponse)
@@ -172,6 +184,7 @@ type IdentraServiceServer interface {
 	BindUserByOAuth(context.Context, *BindUserByOAuthRequest) (*BindUserByOAuthResponse, error)
 	SendLoginEmailCode(context.Context, *SendLoginEmailCodeRequest) (*SendLoginEmailCodeResponse, error)
 	LoginByEmailCode(context.Context, *LoginByEmailCodeRequest) (*LoginByEmailCodeResponse, error)
+	RegisterByPassword(context.Context, *RegisterByPasswordRequest) (*RegisterByPasswordResponse, error)
 	LoginByPassword(context.Context, *LoginByPasswordRequest) (*LoginByPasswordResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	// ListOAuthProviders returns all supported OAuth providers with their
@@ -208,6 +221,9 @@ func (UnimplementedIdentraServiceServer) SendLoginEmailCode(context.Context, *Se
 }
 func (UnimplementedIdentraServiceServer) LoginByEmailCode(context.Context, *LoginByEmailCodeRequest) (*LoginByEmailCodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LoginByEmailCode not implemented")
+}
+func (UnimplementedIdentraServiceServer) RegisterByPassword(context.Context, *RegisterByPasswordRequest) (*RegisterByPasswordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RegisterByPassword not implemented")
 }
 func (UnimplementedIdentraServiceServer) LoginByPassword(context.Context, *LoginByPasswordRequest) (*LoginByPasswordResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LoginByPassword not implemented")
@@ -350,6 +366,24 @@ func _IdentraService_LoginByEmailCode_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IdentraService_RegisterByPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterByPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentraServiceServer).RegisterByPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentraService_RegisterByPassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentraServiceServer).RegisterByPassword(ctx, req.(*RegisterByPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IdentraService_LoginByPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LoginByPasswordRequest)
 	if err := dec(in); err != nil {
@@ -452,6 +486,10 @@ var IdentraService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginByEmailCode",
 			Handler:    _IdentraService_LoginByEmailCode_Handler,
+		},
+		{
+			MethodName: "RegisterByPassword",
+			Handler:    _IdentraService_RegisterByPassword_Handler,
 		},
 		{
 			MethodName: "LoginByPassword",

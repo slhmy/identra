@@ -532,6 +532,46 @@ func (s *Service) LoginByEmailCode(
 	return &identra_v1_pb.LoginByEmailCodeResponse{Token: tokenPair}, nil
 }
 
+func (s *Service) RegisterByPassword(
+	ctx context.Context,
+	req *identra_v1_pb.RegisterByPasswordRequest,
+) (*identra_v1_pb.RegisterByPasswordResponse, error) {
+	email := strings.TrimSpace(req.GetEmail())
+	password := req.GetPassword()
+	if email == "" || password == "" {
+		return nil, status.Error(codes.InvalidArgument, "email and password are required")
+	}
+
+	_, err := s.userStore.GetByEmail(ctx, email)
+	switch {
+	case err == nil:
+		return nil, status.Error(codes.AlreadyExists, "user already exists")
+	case errors.Is(err, domain.ErrNotFound):
+		// expected — proceed to create
+	default:
+		return nil, status.Error(codes.Internal, "failed to fetch user")
+	}
+
+	hash, hashErr := security.HashPassword(password)
+	if hashErr != nil {
+		slog.ErrorContext(ctx, "failed to hash password", "error", hashErr)
+		return nil, status.Error(codes.Internal, "failed to process password")
+	}
+	usr := &domain.UserModel{Email: email, HashedPassword: &hash}
+	if createErr := s.userStore.Create(ctx, usr); createErr != nil {
+		return nil, status.Error(codes.Internal, "failed to create user")
+	}
+
+	s.recordLogin(ctx, usr)
+	tokenPair, err := security.NewTokenPair(usr.ID, s.tokenCfg)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create token pair (register)", "error", err)
+		return nil, status.Error(codes.Internal, "failed to create token pair")
+	}
+
+	return &identra_v1_pb.RegisterByPasswordResponse{Token: tokenPair}, nil
+}
+
 func (s *Service) LoginByPassword(
 	ctx context.Context,
 	req *identra_v1_pb.LoginByPasswordRequest,
@@ -542,46 +582,31 @@ func (s *Service) LoginByPassword(
 		return nil, status.Error(codes.InvalidArgument, "email and password are required")
 	}
 
-	existing, err := s.userStore.GetByEmail(ctx, email)
+	usr, err := s.userStore.GetByEmail(ctx, email)
 	switch {
 	case err == nil:
-		if existing.HashedPassword == nil {
-			hash, hashErr := security.HashPassword(password)
-			if hashErr != nil {
-				slog.ErrorContext(ctx, "failed to hash password", "error", hashErr)
-				return nil, status.Error(codes.Internal, "failed to process password")
-			}
-			existing.HashedPassword = &hash
-			if updateErr := s.userStore.Update(ctx, existing); updateErr != nil {
-				return nil, status.Error(codes.Internal, "failed to persist password")
-			}
-		} else {
-			valid, verifyErr := security.VerifyPassword(password, *existing.HashedPassword)
-			if verifyErr != nil {
-				slog.ErrorContext(ctx, "password verification failed", "error", verifyErr)
-				return nil, status.Error(codes.Internal, "failed to verify password")
-			}
-			if !valid {
-				return nil, status.Error(codes.Unauthenticated, "invalid credentials")
-			}
-		}
-
+		// user found — verify password below
 	case errors.Is(err, domain.ErrNotFound):
-		hash, hashErr := security.HashPassword(password)
-		if hashErr != nil {
-			slog.ErrorContext(ctx, "failed to hash password", "error", hashErr)
-			return nil, status.Error(codes.Internal, "failed to process password")
-		}
-		existing = &domain.UserModel{Email: email, HashedPassword: &hash}
-		if createErr := s.userStore.Create(ctx, existing); createErr != nil {
-			return nil, status.Error(codes.Internal, "failed to create user")
-		}
+		return nil, status.Error(codes.NotFound, "user not found")
 	default:
 		return nil, status.Error(codes.Internal, "failed to fetch user")
 	}
 
-	s.recordLogin(ctx, existing)
-	tokenPair, err := security.NewTokenPair(existing.ID, s.tokenCfg)
+	if usr.HashedPassword == nil {
+		return nil, status.Error(codes.FailedPrecondition, "password login not set up for this account")
+	}
+
+	valid, verifyErr := security.VerifyPassword(password, *usr.HashedPassword)
+	if verifyErr != nil {
+		slog.ErrorContext(ctx, "password verification failed", "error", verifyErr)
+		return nil, status.Error(codes.Internal, "failed to verify password")
+	}
+	if !valid {
+		return nil, status.Error(codes.Unauthenticated, "invalid credentials")
+	}
+
+	s.recordLogin(ctx, usr)
+	tokenPair, err := security.NewTokenPair(usr.ID, s.tokenCfg)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to create token pair", "error", err)
 		return nil, status.Error(codes.Internal, "failed to create token pair")

@@ -39,6 +39,12 @@ service IdentraService {
       body: "*"
     };
   }
+  rpc RegisterByPassword(RegisterByPasswordRequest) returns (RegisterByPasswordResponse) {
+    option (google.api.http) = {
+      post: "/password/register"
+      body: "*"
+    };
+  }
   rpc LoginByPassword(LoginByPasswordRequest) returns (LoginByPasswordResponse) {
     option (google.api.http) = {
       post: "/password/login"

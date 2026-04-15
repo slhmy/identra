@@ -877,6 +877,102 @@ func (x *LoginByEmailCodeResponse) GetToken() *TokenPair {
 	return nil
 }
 
+type RegisterByPasswordRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterByPasswordRequest) Reset() {
+	*x = RegisterByPasswordRequest{}
+	mi := &file_identra_v1_types_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterByPasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterByPasswordRequest) ProtoMessage() {}
+
+func (x *RegisterByPasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identra_v1_types_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterByPasswordRequest.ProtoReflect.Descriptor instead.
+func (*RegisterByPasswordRequest) Descriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *RegisterByPasswordRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *RegisterByPasswordRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type RegisterByPasswordResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         *TokenPair             `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterByPasswordResponse) Reset() {
+	*x = RegisterByPasswordResponse{}
+	mi := &file_identra_v1_types_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterByPasswordResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterByPasswordResponse) ProtoMessage() {}
+
+func (x *RegisterByPasswordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identra_v1_types_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterByPasswordResponse.ProtoReflect.Descriptor instead.
+func (*RegisterByPasswordResponse) Descriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *RegisterByPasswordResponse) GetToken() *TokenPair {
+	if x != nil {
+		return x.Token
+	}
+	return nil
+}
+
 type LoginByPasswordRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
@@ -887,7 +983,7 @@ type LoginByPasswordRequest struct {
 
 func (x *LoginByPasswordRequest) Reset() {
 	*x = LoginByPasswordRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[15]
+	mi := &file_identra_v1_types_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -899,7 +995,7 @@ func (x *LoginByPasswordRequest) String() string {
 func (*LoginByPasswordRequest) ProtoMessage() {}
 
 func (x *LoginByPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[15]
+	mi := &file_identra_v1_types_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -912,7 +1008,7 @@ func (x *LoginByPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginByPasswordRequest.ProtoReflect.Descriptor instead.
 func (*LoginByPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{15}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *LoginByPasswordRequest) GetEmail() string {
@@ -938,7 +1034,7 @@ type LoginByPasswordResponse struct {
 
 func (x *LoginByPasswordResponse) Reset() {
 	*x = LoginByPasswordResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[16]
+	mi := &file_identra_v1_types_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -950,7 +1046,7 @@ func (x *LoginByPasswordResponse) String() string {
 func (*LoginByPasswordResponse) ProtoMessage() {}
 
 func (x *LoginByPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[16]
+	mi := &file_identra_v1_types_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -963,7 +1059,7 @@ func (x *LoginByPasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginByPasswordResponse.ProtoReflect.Descriptor instead.
 func (*LoginByPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{16}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *LoginByPasswordResponse) GetToken() *TokenPair {
@@ -982,7 +1078,7 @@ type RefreshTokenRequest struct {
 
 func (x *RefreshTokenRequest) Reset() {
 	*x = RefreshTokenRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[17]
+	mi := &file_identra_v1_types_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -994,7 +1090,7 @@ func (x *RefreshTokenRequest) String() string {
 func (*RefreshTokenRequest) ProtoMessage() {}
 
 func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[17]
+	mi := &file_identra_v1_types_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1007,7 +1103,7 @@ func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenRequest.ProtoReflect.Descriptor instead.
 func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{17}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RefreshTokenRequest) GetRefreshToken() string {
@@ -1026,7 +1122,7 @@ type RefreshTokenResponse struct {
 
 func (x *RefreshTokenResponse) Reset() {
 	*x = RefreshTokenResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[18]
+	mi := &file_identra_v1_types_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1038,7 +1134,7 @@ func (x *RefreshTokenResponse) String() string {
 func (*RefreshTokenResponse) ProtoMessage() {}
 
 func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[18]
+	mi := &file_identra_v1_types_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1051,7 +1147,7 @@ func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenResponse.ProtoReflect.Descriptor instead.
 func (*RefreshTokenResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{18}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *RefreshTokenResponse) GetToken() *TokenPair {
@@ -1074,7 +1170,7 @@ type OAuthConnection struct {
 
 func (x *OAuthConnection) Reset() {
 	*x = OAuthConnection{}
-	mi := &file_identra_v1_types_proto_msgTypes[19]
+	mi := &file_identra_v1_types_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1086,7 +1182,7 @@ func (x *OAuthConnection) String() string {
 func (*OAuthConnection) ProtoMessage() {}
 
 func (x *OAuthConnection) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[19]
+	mi := &file_identra_v1_types_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1099,7 +1195,7 @@ func (x *OAuthConnection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthConnection.ProtoReflect.Descriptor instead.
 func (*OAuthConnection) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{19}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *OAuthConnection) GetProvider() string {
@@ -1124,7 +1220,7 @@ type ListOAuthProvidersRequest struct {
 
 func (x *ListOAuthProvidersRequest) Reset() {
 	*x = ListOAuthProvidersRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[20]
+	mi := &file_identra_v1_types_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1136,7 +1232,7 @@ func (x *ListOAuthProvidersRequest) String() string {
 func (*ListOAuthProvidersRequest) ProtoMessage() {}
 
 func (x *ListOAuthProvidersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[20]
+	mi := &file_identra_v1_types_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1149,7 +1245,7 @@ func (x *ListOAuthProvidersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOAuthProvidersRequest.ProtoReflect.Descriptor instead.
 func (*ListOAuthProvidersRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{20}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{22}
 }
 
 // OAuthProviderStatus describes whether a single OAuth provider is available.
@@ -1168,7 +1264,7 @@ type OAuthProviderStatus struct {
 
 func (x *OAuthProviderStatus) Reset() {
 	*x = OAuthProviderStatus{}
-	mi := &file_identra_v1_types_proto_msgTypes[21]
+	mi := &file_identra_v1_types_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1180,7 +1276,7 @@ func (x *OAuthProviderStatus) String() string {
 func (*OAuthProviderStatus) ProtoMessage() {}
 
 func (x *OAuthProviderStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[21]
+	mi := &file_identra_v1_types_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1193,7 +1289,7 @@ func (x *OAuthProviderStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthProviderStatus.ProtoReflect.Descriptor instead.
 func (*OAuthProviderStatus) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{21}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *OAuthProviderStatus) GetName() string {
@@ -1227,7 +1323,7 @@ type ListOAuthProvidersResponse struct {
 
 func (x *ListOAuthProvidersResponse) Reset() {
 	*x = ListOAuthProvidersResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[22]
+	mi := &file_identra_v1_types_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1239,7 +1335,7 @@ func (x *ListOAuthProvidersResponse) String() string {
 func (*ListOAuthProvidersResponse) ProtoMessage() {}
 
 func (x *ListOAuthProvidersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[22]
+	mi := &file_identra_v1_types_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1252,7 +1348,7 @@ func (x *ListOAuthProvidersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOAuthProvidersResponse.ProtoReflect.Descriptor instead.
 func (*ListOAuthProvidersResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{22}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListOAuthProvidersResponse) GetProviders() []*OAuthProviderStatus {
@@ -1272,7 +1368,7 @@ type GetCurrentUserLoginInfoRequest struct {
 
 func (x *GetCurrentUserLoginInfoRequest) Reset() {
 	*x = GetCurrentUserLoginInfoRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[23]
+	mi := &file_identra_v1_types_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1284,7 +1380,7 @@ func (x *GetCurrentUserLoginInfoRequest) String() string {
 func (*GetCurrentUserLoginInfoRequest) ProtoMessage() {}
 
 func (x *GetCurrentUserLoginInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[23]
+	mi := &file_identra_v1_types_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1297,7 +1393,7 @@ func (x *GetCurrentUserLoginInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserLoginInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserLoginInfoRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{23}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetCurrentUserLoginInfoRequest) GetAccessToken() string {
@@ -1324,7 +1420,7 @@ type GetCurrentUserLoginInfoResponse struct {
 
 func (x *GetCurrentUserLoginInfoResponse) Reset() {
 	*x = GetCurrentUserLoginInfoResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[24]
+	mi := &file_identra_v1_types_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1336,7 +1432,7 @@ func (x *GetCurrentUserLoginInfoResponse) String() string {
 func (*GetCurrentUserLoginInfoResponse) ProtoMessage() {}
 
 func (x *GetCurrentUserLoginInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[24]
+	mi := &file_identra_v1_types_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1349,7 +1445,7 @@ func (x *GetCurrentUserLoginInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserLoginInfoResponse.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserLoginInfoResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{24}
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GetCurrentUserLoginInfoResponse) GetUserId() string {
@@ -1454,6 +1550,11 @@ const file_identra_v1_types_proto_rawDesc = "" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\"G\n" +
 	"\x18LoginByEmailCodeResponse\x12+\n" +
+	"\x05token\x18\x01 \x01(\v2\x15.identra.v1.TokenPairR\x05token\"M\n" +
+	"\x19RegisterByPasswordRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"I\n" +
+	"\x1aRegisterByPasswordResponse\x12+\n" +
 	"\x05token\x18\x01 \x01(\v2\x15.identra.v1.TokenPairR\x05token\"J\n" +
 	"\x16LoginByPasswordRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
@@ -1498,7 +1599,7 @@ func file_identra_v1_types_proto_rawDescGZIP() []byte {
 	return file_identra_v1_types_proto_rawDescData
 }
 
-var file_identra_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_identra_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_identra_v1_types_proto_goTypes = []any{
 	(*Token)(nil),                            // 0: identra.v1.Token
 	(*TokenPair)(nil),                        // 1: identra.v1.TokenPair
@@ -1515,16 +1616,18 @@ var file_identra_v1_types_proto_goTypes = []any{
 	(*SendLoginEmailCodeResponse)(nil),       // 12: identra.v1.SendLoginEmailCodeResponse
 	(*LoginByEmailCodeRequest)(nil),          // 13: identra.v1.LoginByEmailCodeRequest
 	(*LoginByEmailCodeResponse)(nil),         // 14: identra.v1.LoginByEmailCodeResponse
-	(*LoginByPasswordRequest)(nil),           // 15: identra.v1.LoginByPasswordRequest
-	(*LoginByPasswordResponse)(nil),          // 16: identra.v1.LoginByPasswordResponse
-	(*RefreshTokenRequest)(nil),              // 17: identra.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),             // 18: identra.v1.RefreshTokenResponse
-	(*OAuthConnection)(nil),                  // 19: identra.v1.OAuthConnection
-	(*ListOAuthProvidersRequest)(nil),        // 20: identra.v1.ListOAuthProvidersRequest
-	(*OAuthProviderStatus)(nil),              // 21: identra.v1.OAuthProviderStatus
-	(*ListOAuthProvidersResponse)(nil),       // 22: identra.v1.ListOAuthProvidersResponse
-	(*GetCurrentUserLoginInfoRequest)(nil),   // 23: identra.v1.GetCurrentUserLoginInfoRequest
-	(*GetCurrentUserLoginInfoResponse)(nil),  // 24: identra.v1.GetCurrentUserLoginInfoResponse
+	(*RegisterByPasswordRequest)(nil),        // 15: identra.v1.RegisterByPasswordRequest
+	(*RegisterByPasswordResponse)(nil),       // 16: identra.v1.RegisterByPasswordResponse
+	(*LoginByPasswordRequest)(nil),           // 17: identra.v1.LoginByPasswordRequest
+	(*LoginByPasswordResponse)(nil),          // 18: identra.v1.LoginByPasswordResponse
+	(*RefreshTokenRequest)(nil),              // 19: identra.v1.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),             // 20: identra.v1.RefreshTokenResponse
+	(*OAuthConnection)(nil),                  // 21: identra.v1.OAuthConnection
+	(*ListOAuthProvidersRequest)(nil),        // 22: identra.v1.ListOAuthProvidersRequest
+	(*OAuthProviderStatus)(nil),              // 23: identra.v1.OAuthProviderStatus
+	(*ListOAuthProvidersResponse)(nil),       // 24: identra.v1.ListOAuthProvidersResponse
+	(*GetCurrentUserLoginInfoRequest)(nil),   // 25: identra.v1.GetCurrentUserLoginInfoRequest
+	(*GetCurrentUserLoginInfoResponse)(nil),  // 26: identra.v1.GetCurrentUserLoginInfoResponse
 }
 var file_identra_v1_types_proto_depIdxs = []int32{
 	0,  // 0: identra.v1.TokenPair.access_token:type_name -> identra.v1.Token
@@ -1533,15 +1636,16 @@ var file_identra_v1_types_proto_depIdxs = []int32{
 	1,  // 3: identra.v1.LoginByOAuthResponse.token:type_name -> identra.v1.TokenPair
 	1,  // 4: identra.v1.BindUserByOAuthResponse.token:type_name -> identra.v1.TokenPair
 	1,  // 5: identra.v1.LoginByEmailCodeResponse.token:type_name -> identra.v1.TokenPair
-	1,  // 6: identra.v1.LoginByPasswordResponse.token:type_name -> identra.v1.TokenPair
-	1,  // 7: identra.v1.RefreshTokenResponse.token:type_name -> identra.v1.TokenPair
-	21, // 8: identra.v1.ListOAuthProvidersResponse.providers:type_name -> identra.v1.OAuthProviderStatus
-	19, // 9: identra.v1.GetCurrentUserLoginInfoResponse.oauth_connections:type_name -> identra.v1.OAuthConnection
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	1,  // 6: identra.v1.RegisterByPasswordResponse.token:type_name -> identra.v1.TokenPair
+	1,  // 7: identra.v1.LoginByPasswordResponse.token:type_name -> identra.v1.TokenPair
+	1,  // 8: identra.v1.RefreshTokenResponse.token:type_name -> identra.v1.TokenPair
+	23, // 9: identra.v1.ListOAuthProvidersResponse.providers:type_name -> identra.v1.OAuthProviderStatus
+	21, // 10: identra.v1.GetCurrentUserLoginInfoResponse.oauth_connections:type_name -> identra.v1.OAuthConnection
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_identra_v1_types_proto_init() }
@@ -1551,15 +1655,15 @@ func file_identra_v1_types_proto_init() {
 	}
 	file_identra_v1_types_proto_msgTypes[2].OneofWrappers = []any{}
 	file_identra_v1_types_proto_msgTypes[5].OneofWrappers = []any{}
-	file_identra_v1_types_proto_msgTypes[21].OneofWrappers = []any{}
-	file_identra_v1_types_proto_msgTypes[24].OneofWrappers = []any{}
+	file_identra_v1_types_proto_msgTypes[23].OneofWrappers = []any{}
+	file_identra_v1_types_proto_msgTypes[26].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identra_v1_types_proto_rawDesc), len(file_identra_v1_types_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   25,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

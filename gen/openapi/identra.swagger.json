@@ -291,6 +291,38 @@
         ]
       }
     },
+    "/password/register": {
+      "post": {
+        "operationId": "IdentraService_RegisterByPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RegisterByPasswordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RegisterByPasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "IdentraService"
+        ]
+      }
+    },
     "/token/refresh": {
       "post": {
         "operationId": "IdentraService_RefreshToken",
@@ -613,6 +645,25 @@
       }
     },
     "v1RefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "$ref": "#/definitions/v1TokenPair"
+        }
+      }
+    },
+    "v1RegisterByPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "v1RegisterByPasswordResponse": {
       "type": "object",
       "properties": {
         "token": {

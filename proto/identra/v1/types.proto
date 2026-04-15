@@ -105,6 +105,14 @@ message LoginByEmailCodeResponse {
   TokenPair token = 1;
 }
 
+message RegisterByPasswordRequest {
+  string email = 1;
+  string password = 2;
+}
+message RegisterByPasswordResponse {
+  TokenPair token = 1;
+}
+
 message LoginByPasswordRequest {
   string email = 1;
   string password = 2;
