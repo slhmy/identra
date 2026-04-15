@@ -46,15 +46,6 @@ func (m *mockUserStore) GetByEmail(ctx context.Context, email string) (*domain.U
 	return nil, domain.ErrNotFound
 }
 
-func (m *mockUserStore) GetByGithubID(ctx context.Context, githubID string) (*domain.UserModel, error) {
-	for _, user := range m.users {
-		if user.GithubID != nil && *user.GithubID == githubID {
-			return user, nil
-		}
-	}
-	return nil, domain.ErrNotFound
-}
-
 func (m *mockUserStore) Update(ctx context.Context, user *domain.UserModel) error {
 	if _, ok := m.users[user.ID]; !ok {
 		return domain.ErrNotFound
@@ -83,13 +74,61 @@ func (m *mockUserStore) Count(ctx context.Context) (int64, error) {
 	return int64(len(m.users)), nil
 }
 
+// mockExternalIdentityStore is a simple in-memory external identity store for testing.
+type mockExternalIdentityStore struct {
+	identities     []*domain.ExternalIdentityModel
+	forceCreateErr error
+}
+
+func newMockExternalIdentityStore() *mockExternalIdentityStore {
+	return &mockExternalIdentityStore{}
+}
+
+func (m *mockExternalIdentityStore) Create(_ context.Context, identity *domain.ExternalIdentityModel) error {
+	if m.forceCreateErr != nil {
+		return m.forceCreateErr
+	}
+	if identity.ID == "" {
+		identity.ID = "test-identity-id"
+	}
+	m.identities = append(m.identities, identity)
+	return nil
+}
+
+func (m *mockExternalIdentityStore) GetByProviderID(
+	_ context.Context,
+	provider, providerUserID string,
+) (*domain.ExternalIdentityModel, error) {
+	for _, id := range m.identities {
+		if id.Provider == provider && id.ProviderUserID == providerUserID {
+			return id, nil
+		}
+	}
+	return nil, domain.ErrNotFound
+}
+
+func (m *mockExternalIdentityStore) GetByUserID(
+	_ context.Context,
+	userID string,
+) ([]*domain.ExternalIdentityModel, error) {
+	var result []*domain.ExternalIdentityModel
+	for _, id := range m.identities {
+		if id.UserID == userID {
+			result = append(result, id)
+		}
+	}
+	return result, nil
+}
+
 func TestEnsureOAuthUser_WithEmail(t *testing.T) {
 	store := newMockUserStore()
-	svc := &Service{userStore: store}
+	extStore := newMockExternalIdentityStore()
+	svc := &Service{userStore: store, externalIdentityStore: extStore}
 
 	info := UserInfo{
-		ID:    "github123",
-		Email: "user@example.com",
+		Provider: "github",
+		ID:       "github123",
+		Email:    "user@example.com",
 	}
 
 	user, err := svc.ensureOAuthUser(context.Background(), info)
@@ -100,18 +139,26 @@ func TestEnsureOAuthUser_WithEmail(t *testing.T) {
 	if user.Email != "user@example.com" {
 		t.Errorf("expected email 'user@example.com', got %q", user.Email)
 	}
-	if user.GithubID == nil || *user.GithubID != "github123" {
-		t.Errorf("expected GithubID 'github123', got %v", user.GithubID)
+
+	// Verify external identity was created with correct fields.
+	id, lookupErr := extStore.GetByProviderID(context.Background(), "github", "github123")
+	if lookupErr != nil {
+		t.Fatalf("expected external identity to exist, got %v", lookupErr)
+	}
+	if id.UserID != user.ID {
+		t.Errorf("expected external identity user_id %q, got %q", user.ID, id.UserID)
 	}
 }
 
 func TestEnsureOAuthUser_WithoutEmail(t *testing.T) {
 	store := newMockUserStore()
-	svc := &Service{userStore: store}
+	extStore := newMockExternalIdentityStore()
+	svc := &Service{userStore: store, externalIdentityStore: extStore}
 
 	info := UserInfo{
-		ID:    "github456",
-		Email: "",
+		Provider: "github",
+		ID:       "github456",
+		Email:    "",
 	}
 
 	user, err := svc.ensureOAuthUser(context.Background(), info)
@@ -122,26 +169,37 @@ func TestEnsureOAuthUser_WithoutEmail(t *testing.T) {
 	if user.Email != "" {
 		t.Errorf("expected empty email, got %q", user.Email)
 	}
-	if user.GithubID == nil || *user.GithubID != "github456" {
-		t.Errorf("expected GithubID 'github456', got %v", user.GithubID)
+
+	id, lookupErr := extStore.GetByProviderID(context.Background(), "github", "github456")
+	if lookupErr != nil {
+		t.Fatalf("expected external identity to exist, got %v", lookupErr)
+	}
+	if id.UserID != user.ID {
+		t.Errorf("expected external identity user_id %q, got %q", user.ID, id.UserID)
 	}
 }
 
-func TestEnsureOAuthUser_ExistingUserByGithubID(t *testing.T) {
+func TestEnsureOAuthUser_ExistingUserByProviderID(t *testing.T) {
 	store := newMockUserStore()
-	svc := &Service{userStore: store}
+	extStore := newMockExternalIdentityStore()
+	svc := &Service{userStore: store, externalIdentityStore: extStore}
 
-	githubID := "github789"
 	existingUser := &domain.UserModel{
-		ID:       "existing-user-id",
-		Email:    "existing@example.com",
-		GithubID: &githubID,
+		ID:    "existing-user-id",
+		Email: "existing@example.com",
 	}
 	_ = store.Create(context.Background(), existingUser)
+	_ = extStore.Create(context.Background(), &domain.ExternalIdentityModel{
+		ID:             "eid1",
+		UserID:         "existing-user-id",
+		Provider:       "github",
+		ProviderUserID: "github789",
+	})
 
 	info := UserInfo{
-		ID:    "github789",
-		Email: "different@example.com",
+		Provider: "github",
+		ID:       "github789",
+		Email:    "different@example.com",
 	}
 
 	user, err := svc.ensureOAuthUser(context.Background(), info)
@@ -152,7 +210,7 @@ func TestEnsureOAuthUser_ExistingUserByGithubID(t *testing.T) {
 	if user.ID != existingUser.ID {
 		t.Errorf("expected existing user ID, got %q", user.ID)
 	}
-	// Email should be updated
+	// Email should be updated on the user.
 	if user.Email != "different@example.com" {
 		t.Errorf("expected email to be updated to 'different@example.com', got %q", user.Email)
 	}
@@ -160,7 +218,8 @@ func TestEnsureOAuthUser_ExistingUserByGithubID(t *testing.T) {
 
 func TestEnsureOAuthUser_LinkExistingUserByEmail(t *testing.T) {
 	store := newMockUserStore()
-	svc := &Service{userStore: store}
+	extStore := newMockExternalIdentityStore()
+	svc := &Service{userStore: store, externalIdentityStore: extStore}
 
 	existingUser := &domain.UserModel{
 		ID:    "existing-user-id",
@@ -169,8 +228,9 @@ func TestEnsureOAuthUser_LinkExistingUserByEmail(t *testing.T) {
 	_ = store.Create(context.Background(), existingUser)
 
 	info := UserInfo{
-		ID:    "github999",
-		Email: "existing@example.com",
+		Provider: "github",
+		ID:       "github999",
+		Email:    "existing@example.com",
 	}
 
 	user, err := svc.ensureOAuthUser(context.Background(), info)
@@ -181,7 +241,14 @@ func TestEnsureOAuthUser_LinkExistingUserByEmail(t *testing.T) {
 	if user.ID != existingUser.ID {
 		t.Errorf("expected existing user ID, got %q", user.ID)
 	}
-	if user.GithubID == nil || *user.GithubID != "github999" {
-		t.Errorf("expected GithubID to be linked to 'github999', got %v", user.GithubID)
+
+	// Verify external identity was linked to the existing user.
+	id, lookupErr := extStore.GetByProviderID(context.Background(), "github", "github999")
+	if lookupErr != nil {
+		t.Fatalf("expected external identity to exist, got %v", lookupErr)
+	}
+	if id.UserID != existingUser.ID {
+		t.Errorf("expected external identity user_id %q, got %q", existingUser.ID, id.UserID)
 	}
 }
+

@@ -53,10 +53,6 @@ func (r *mongoUserStore) ensureIndexes(ctx context.Context) error {
 			// This enables OAuth users without email to be created.
 			Options: options.Index().SetUnique(true).SetSparse(true).SetName("idx_email_unique"),
 		},
-		{
-			Keys:    bson.D{{Key: "github_id", Value: 1}},
-			Options: options.Index().SetUnique(true).SetSparse(true).SetName("idx_github_id_unique"),
-		},
 	}
 
 	if _, err := r.coll.Indexes().CreateMany(ctx, models); err != nil {
@@ -86,10 +82,6 @@ func (r *mongoUserStore) GetByID(ctx context.Context, id string) (*domain.UserMo
 
 func (r *mongoUserStore) GetByEmail(ctx context.Context, email string) (*domain.UserModel, error) {
 	return r.findOne(ctx, bson.M{"email": email}, "email", email)
-}
-
-func (r *mongoUserStore) GetByGithubID(ctx context.Context, githubID string) (*domain.UserModel, error) {
-	return r.findOne(ctx, bson.M{"github_id": githubID}, "github_id", githubID)
 }
 
 func (r *mongoUserStore) Update(ctx context.Context, user *domain.UserModel) error {

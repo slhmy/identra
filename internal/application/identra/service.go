@@ -44,6 +44,7 @@ type Service struct {
 	emailCodeStore           cache.EmailCodeStore
 	oauthStateStore          oauth.StateStore
 	userStore                domain.UserStore
+	externalIdentityStore    domain.ExternalIdentityStore
 	userStoreCleanup         func(context.Context) error
 	keyManager               *security.KeyManager
 	tokenCfg                 security.TokenConfig
@@ -100,7 +101,7 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		stateTTL = DefaultOAuthStateExpiration
 	}
 
-	userStore, cleanup, storeErr := buildUserStore(ctx, cfg)
+	userStore, externalIdentityStore, cleanup, storeErr := buildStores(ctx, cfg)
 	if storeErr != nil {
 		return nil, storeErr
 	}
@@ -164,6 +165,7 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 
 	return &Service{
 		userStore:                userStore,
+		externalIdentityStore:    externalIdentityStore,
 		keyManager:               km,
 		tokenCfg:                 tokenCfg,
 		oauthStateStore:          oauthStore,
@@ -411,30 +413,24 @@ func (s *Service) BindUserByOAuth(
 	}
 	s.maybeFillOAuthEmail(ctx, userProvider, token.AccessToken, &userInfo)
 
-	providerUser, err := s.userStore.GetByGithubID(ctx, userInfo.ID)
+	providerIdentity, err := s.externalIdentityStore.GetByProviderID(ctx, stateData.Provider, userInfo.ID)
 	switch {
-	case err == nil && providerUser.ID != bindingUser.ID:
+	case err == nil && providerIdentity.UserID != bindingUser.ID:
 		return nil, status.Error(codes.AlreadyExists, "oauth account already linked to another user")
 	case err == nil:
-		// Already linked to this user; continue to refresh token pair and email if needed.
+		// Already linked to this user; continue to refresh token pair.
 	case errors.Is(err, domain.ErrNotFound):
-		// Not linked yet.
+		// Not linked yet; create the external identity.
+		identity := &domain.ExternalIdentityModel{
+			UserID:         bindingUser.ID,
+			Provider:       stateData.Provider,
+			ProviderUserID: userInfo.ID,
+		}
+		if createErr := s.externalIdentityStore.Create(ctx, identity); createErr != nil {
+			return nil, status.Error(codes.Internal, "failed to link oauth account")
+		}
 	default:
 		return nil, status.Error(codes.Internal, "failed to check existing oauth link")
-	}
-
-	if bindingUser.GithubID == nil || *bindingUser.GithubID == "" {
-		bindingUser.GithubID = &userInfo.ID
-	} else if *bindingUser.GithubID != userInfo.ID {
-		return nil, status.Error(codes.FailedPrecondition, "user already linked to another oauth account")
-	}
-
-	if _, err := s.updateEmailIfNeeded(ctx, bindingUser, userInfo.Email); err != nil {
-		return nil, err
-	}
-
-	if err := s.userStore.Update(ctx, bindingUser); err != nil {
-		return nil, status.Error(codes.Internal, "failed to link oauth account")
 	}
 
 	s.recordLogin(ctx, bindingUser)
@@ -789,12 +785,19 @@ func (s *Service) GetCurrentUserLoginInfo(
 		PasswordEnabled: usr.HashedPassword != nil && strings.TrimSpace(*usr.HashedPassword) != "",
 	}
 
-	if usr.GithubID != nil && strings.TrimSpace(*usr.GithubID) != "" {
-		resp.GithubId = usr.GithubID
-		resp.OauthConnections = append(resp.OauthConnections, &identra_v1_pb.OAuthConnection{
-			Provider:       "github",
-			ProviderUserId: *usr.GithubID,
-		})
+	identities, err := s.externalIdentityStore.GetByUserID(ctx, usr.ID)
+	if err != nil {
+		slog.WarnContext(ctx, "failed to fetch external identities", "error", err, "user_id", usr.ID)
+	} else {
+		for _, identity := range identities {
+			resp.OauthConnections = append(resp.OauthConnections, &identra_v1_pb.OAuthConnection{
+				Provider:       identity.Provider,
+				ProviderUserId: identity.ProviderUserID,
+			})
+			if identity.Provider == "github" {
+				resp.GithubId = &identity.ProviderUserID
+			}
+		}
 	}
 
 	return resp, nil
@@ -804,39 +807,66 @@ func (s *Service) ensureOAuthUser(ctx context.Context, info UserInfo) (*domain.U
 	if info.ID == "" {
 		return nil, status.Error(codes.Internal, "provider user id is empty")
 	}
+	if info.Provider == "" {
+		return nil, status.Error(codes.Internal, "provider name is empty")
+	}
 
-	existing, err := s.userStore.GetByGithubID(ctx, info.ID)
+	existing, err := s.externalIdentityStore.GetByProviderID(ctx, info.Provider, info.ID)
 	switch {
 	case err == nil:
-		return s.updateEmailIfNeeded(ctx, existing, info.Email)
+		// External identity already exists; fetch and return the linked user.
+		usr, userErr := s.userStore.GetByID(ctx, existing.UserID)
+		if userErr != nil {
+			return nil, status.Error(codes.Internal, "failed to fetch user linked to oauth identity")
+		}
+		return s.updateEmailIfNeeded(ctx, usr, info.Email)
 	case errors.Is(err, domain.ErrNotFound):
-		// If user is not linked by provider id, try to link by email if available.
-		// (Email may be missing for some OAuth users, depending on provider settings / privacy.)
+		// No existing external identity; try to link by email if available.
 		if strings.TrimSpace(info.Email) != "" {
 			byEmail, emailErr := s.userStore.GetByEmail(ctx, info.Email)
 			switch {
 			case emailErr == nil:
-				byEmail.GithubID = &info.ID
-				if updateErr := s.userStore.Update(ctx, byEmail); updateErr != nil {
-					return nil, status.Error(codes.Internal, "failed to link github account")
+				// Merge: link the external identity to the existing user.
+				identity := &domain.ExternalIdentityModel{
+					UserID:         byEmail.ID,
+					Provider:       info.Provider,
+					ProviderUserID: info.ID,
+				}
+				if createErr := s.externalIdentityStore.Create(ctx, identity); createErr != nil {
+					return nil, status.Error(codes.Internal, "failed to link oauth account")
 				}
 				return byEmail, nil
 			case errors.Is(emailErr, domain.ErrNotFound):
-				// Email is provided but no existing user, create a new one
-				userModel := &domain.UserModel{Email: info.Email, GithubID: &info.ID}
+				// Create new user and link external identity.
+				userModel := &domain.UserModel{Email: info.Email}
 				if createErr := s.userStore.Create(ctx, userModel); createErr != nil {
 					return nil, status.Error(codes.Internal, "failed to create user")
+				}
+				identity := &domain.ExternalIdentityModel{
+					UserID:         userModel.ID,
+					Provider:       info.Provider,
+					ProviderUserID: info.ID,
+				}
+				if createErr := s.externalIdentityStore.Create(ctx, identity); createErr != nil {
+					return nil, status.Error(codes.Internal, "failed to create oauth identity")
 				}
 				return userModel, nil
 			default:
 				return nil, status.Error(codes.Internal, "failed to fetch user by email")
 			}
 		}
-		// No email provided from OAuth provider, create user with GitHub ID only.
-		// Email is intentionally left as empty string (default value).
-		userModel := &domain.UserModel{GithubID: &info.ID}
+		// No email provided; create user with external identity only.
+		userModel := &domain.UserModel{}
 		if createErr := s.userStore.Create(ctx, userModel); createErr != nil {
 			return nil, status.Error(codes.Internal, "failed to create user")
+		}
+		identity := &domain.ExternalIdentityModel{
+			UserID:         userModel.ID,
+			Provider:       info.Provider,
+			ProviderUserID: info.ID,
+		}
+		if createErr := s.externalIdentityStore.Create(ctx, identity); createErr != nil {
+			return nil, status.Error(codes.Internal, "failed to create oauth identity")
 		}
 		return userModel, nil
 	default:
@@ -884,41 +914,49 @@ func (s *Service) maybeFillOAuthEmail(ctx context.Context, provider UserInfoProv
 	info.Email = strings.TrimSpace(email)
 }
 
-func buildUserStore(ctx context.Context, cfg Config) (domain.UserStore, func(context.Context) error, error) {
+func buildStores(ctx context.Context, cfg Config) (domain.UserStore, domain.ExternalIdentityStore, func(context.Context) error, error) {
 	repoType := strings.ToLower(strings.TrimSpace(cfg.PersistenceType))
 	switch repoType {
 	case "mongo", "mongodb":
 		mongoCfg := cfg.MongoClient
 		if strings.TrimSpace(mongoCfg.URI) == "" {
-			return nil, nil, fmt.Errorf("mongo uri is required when using mongo user repository")
+			return nil, nil, nil, fmt.Errorf("mongo uri is required when using mongo user repository")
 		}
 		if strings.TrimSpace(mongoCfg.Database) == "" {
-			return nil, nil, fmt.Errorf("mongo database is required when using mongo user repository")
+			return nil, nil, nil, fmt.Errorf("mongo database is required when using mongo user repository")
 		}
 
 		client, err := mongo.Connect(options.Client().ApplyURI(mongoCfg.URI))
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to connect to mongo: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to connect to mongo: %w", err)
 		}
 
-		repo, repoErr := persistence.NewMongoUserStore(ctx, client, mongoCfg.Database, "users")
+		userStore, repoErr := persistence.NewMongoUserStore(ctx, client, mongoCfg.Database, "users")
 		if repoErr != nil {
 			_ = client.Disconnect(ctx)
-			return nil, nil, repoErr
+			return nil, nil, nil, repoErr
+		}
+
+		extStore, extErr := persistence.NewMongoExternalIdentityStore(ctx, client, mongoCfg.Database, "external_identities")
+		if extErr != nil {
+			_ = client.Disconnect(ctx)
+			return nil, nil, nil, extErr
 		}
 
 		cleanup := func(cleanupCtx context.Context) error {
 			return client.Disconnect(cleanupCtx)
 		}
-		return repo, cleanup, nil
+		return userStore, extStore, cleanup, nil
 	case "", "gorm", "postgres", "mysql", "sqlite":
 		db := gorm.NewDB(*cfg.GORMClient)
-		if err := db.AutoMigrate(&domain.UserModel{}); err != nil {
+		if err := db.AutoMigrate(&domain.UserModel{}, &domain.ExternalIdentityModel{}); err != nil {
 			slog.Error("failed to migrate database", "error", err)
 		}
-		return persistence.NewGormUserStore(db), func(context.Context) error { return nil }, nil
+		userStore := persistence.NewGormUserStore(db)
+		extStore := persistence.NewGormExternalIdentityStore(db)
+		return userStore, extStore, func(context.Context) error { return nil }, nil
 	default:
-		return nil, nil, fmt.Errorf("unsupported user repository type: %s", cfg.PersistenceType)
+		return nil, nil, nil, fmt.Errorf("unsupported user repository type: %s", cfg.PersistenceType)
 	}
 }
 

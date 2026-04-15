@@ -69,18 +69,6 @@ func (r *gormUserStore) GetByEmail(ctx context.Context, email string) (*domain.U
 	return &user, nil
 }
 
-func (r *gormUserStore) GetByGithubID(
-	ctx context.Context,
-	githubID string,
-) (*domain.UserModel, error) {
-	var user domain.UserModel
-	err := r.db.WithContext(ctx).Where("github_id = ?", githubID).First(&user).Error
-	if err != nil {
-		return nil, wrapGormError(err)
-	}
-	return &user, nil
-}
-
 func (r *gormUserStore) Update(ctx context.Context, user *domain.UserModel) error {
 	err := r.db.WithContext(ctx).Save(user).Error
 	if err != nil {

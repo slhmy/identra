@@ -22,10 +22,9 @@ type UserModel struct {
 	UpdatedAt        time.Time      `bson:"updated_at,omitempty" json:"updated_at"`
 	DeletedAt        gorm.DeletedAt `gorm:"index" bson:"-" json:"-"`
 	Email            string         `gorm:"type:varchar(255);uniqueIndex" bson:"email" json:"email"`
-	HashedPassword   *string        `gorm:"column:hashed_password"                 bson:"hashed_password,omitempty" json:"-"`
-	VerificationHash *string        `gorm:"column:hash"                            bson:"hash,omitempty" json:"-"`
-	GithubID         *string        `gorm:"column:github_id;unique"                bson:"github_id,omitempty" json:"github_id"`
-	LastLoginAt      *time.Time     `                                              bson:"last_login_at,omitempty" json:"last_login_at"`
+	HashedPassword   *string        `gorm:"column:hashed_password" bson:"hashed_password,omitempty" json:"-"`
+	VerificationHash *string        `gorm:"column:hash"            bson:"hash,omitempty" json:"-"`
+	LastLoginAt      *time.Time     `                              bson:"last_login_at,omitempty" json:"last_login_at"`
 }
 
 // TableName returns the database table name for UserModel.
@@ -46,7 +45,6 @@ type UserStore interface {
 	Create(ctx context.Context, user *UserModel) error
 	GetByID(ctx context.Context, id string) (*UserModel, error)
 	GetByEmail(ctx context.Context, email string) (*UserModel, error)
-	GetByGithubID(ctx context.Context, githubID string) (*UserModel, error)
 	Update(ctx context.Context, user *UserModel) error
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, offset, limit int) ([]*UserModel, error)

@@ -8,6 +8,7 @@ import (
 )
 
 type UserInfo struct {
+	Provider  string
 	ID        string
 	Email     string
 	Username  string
@@ -40,6 +41,7 @@ func (g *GitHubUserInfoProvider) GetUserInfo(ctx context.Context, token string) 
 		return UserInfo{}, err
 	}
 	return UserInfo{
+		Provider:  "github",
 		ID:        fmt.Sprintf("%d", user.GetID()),
 		Email:     user.GetEmail(),
 		Username:  user.GetLogin(),
