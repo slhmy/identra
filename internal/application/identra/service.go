@@ -848,6 +848,11 @@ func (s *Service) ensureOAuthUser(ctx context.Context, info UserInfo) (*domain.U
 					ProviderUserID: info.ID,
 				}
 				if createErr := s.externalIdentityStore.Create(ctx, identity); createErr != nil {
+					// Compensate: remove the newly created user to avoid orphaned records.
+					if deleteErr := s.userStore.Delete(ctx, userModel.ID); deleteErr != nil {
+						slog.ErrorContext(ctx, "failed to clean up orphaned user after identity create failure",
+							"error", deleteErr, "user_id", userModel.ID)
+					}
 					return nil, status.Error(codes.Internal, "failed to create oauth identity")
 				}
 				return userModel, nil
@@ -866,6 +871,11 @@ func (s *Service) ensureOAuthUser(ctx context.Context, info UserInfo) (*domain.U
 			ProviderUserID: info.ID,
 		}
 		if createErr := s.externalIdentityStore.Create(ctx, identity); createErr != nil {
+			// Compensate: remove the newly created user to avoid orphaned records.
+			if deleteErr := s.userStore.Delete(ctx, userModel.ID); deleteErr != nil {
+				slog.ErrorContext(ctx, "failed to clean up orphaned user after identity create failure",
+					"error", deleteErr, "user_id", userModel.ID)
+			}
 			return nil, status.Error(codes.Internal, "failed to create oauth identity")
 		}
 		return userModel, nil
