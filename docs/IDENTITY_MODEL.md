@@ -358,7 +358,7 @@ Applied to: `POST /password/login`, `POST /email/login`
 
 The counter key is the **email address** being authenticated. On each **failed** attempt the counter is incremented. On a **successful** login the counter is reset. The limiter is checked before any credential verification; if the limit is already exceeded the request is rejected immediately with `RESOURCE_EXHAUSTED`.
 
-The limiter fails **open**: if Redis is unavailable the check is skipped and login proceeds normally. This prioritises availability over perfect rate-limit enforcement.
+The limiter fails **open**: if Redis is unavailable the check is skipped and login proceeds normally. This prioritizes availability over perfect rate-limit enforcement.
 
 ### Send-Code Rate Limiter
 
