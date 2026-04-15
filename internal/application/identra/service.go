@@ -19,6 +19,7 @@ import (
 	identra_v1_pb "github.com/poly-workshop/identra/gen/go/identra/v1"
 	"github.com/poly-workshop/identra/internal/domain"
 	"github.com/poly-workshop/identra/internal/infrastructure/cache"
+	"github.com/poly-workshop/identra/internal/infrastructure/mail"
 	"github.com/poly-workshop/identra/internal/infrastructure/oauth"
 	"github.com/poly-workshop/identra/internal/infrastructure/persistence"
 	"github.com/poly-workshop/identra/internal/infrastructure/security"
@@ -48,12 +49,19 @@ type Service struct {
 	tokenCfg                 security.TokenConfig
 	githubOAuthConfig        *oauth2.Config
 	oauthFetchEmailIfMissing bool
-	mailer                   *smtp.Mailer
+	mailer                   mail.Sender
+
+	// loginRateLimiter counts failed login attempts per email address and
+	// blocks further attempts after the configured threshold.
+	loginRateLimiter cache.RateLimiter
+	// sendCodeRateLimiter limits how many email verification codes can be sent
+	// to a single address within the configured window.
+	sendCodeRateLimiter cache.RateLimiter
 }
 
 func NewService(ctx context.Context, cfg Config) (*Service, error) {
 	mailerCfg := cfg.SmtpMailer
-	var mailer *smtp.Mailer
+	var mailer mail.Sender
 
 	if strings.TrimSpace(mailerCfg.Host) != "" {
 		if err := validateMailerConfig(mailerCfg); err != nil {
@@ -109,6 +117,44 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		return nil, fmt.Errorf("failed to initialize email code store: %w", storeErr)
 	}
 
+	loginMaxAttempts := cfg.LoginMaxAttempts
+	if loginMaxAttempts <= 0 {
+		loginMaxAttempts = DefaultLoginMaxAttempts
+	}
+	loginLockoutDuration := cfg.LoginLockoutDuration
+	if loginLockoutDuration <= 0 {
+		loginLockoutDuration = DefaultLoginLockoutDuration
+	}
+
+	loginLimiter, loginLimiterErr := cache.NewRedisRateLimiter(
+		redis.NewRDB(*cfg.RedisClient),
+		"identra:rl:login:",
+		loginMaxAttempts,
+		loginLockoutDuration,
+	)
+	if loginLimiterErr != nil {
+		return nil, fmt.Errorf("failed to initialize login rate limiter: %w", loginLimiterErr)
+	}
+
+	sendCodeMaxAttempts := cfg.SendCodeMaxAttempts
+	if sendCodeMaxAttempts <= 0 {
+		sendCodeMaxAttempts = DefaultSendCodeMaxAttempts
+	}
+	sendCodeWindow := cfg.SendCodeWindow
+	if sendCodeWindow <= 0 {
+		sendCodeWindow = DefaultSendCodeWindow
+	}
+
+	sendCodeLimiter, sendCodeLimiterErr := cache.NewRedisRateLimiter(
+		redis.NewRDB(*cfg.RedisClient),
+		"identra:rl:send_code:",
+		sendCodeMaxAttempts,
+		sendCodeWindow,
+	)
+	if sendCodeLimiterErr != nil {
+		return nil, fmt.Errorf("failed to initialize send-code rate limiter: %w", sendCodeLimiterErr)
+	}
+
 	return &Service{
 		userStore:                userStore,
 		keyManager:               km,
@@ -119,6 +165,8 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		oauthFetchEmailIfMissing: cfg.OAuthFetchEmailIfMissing,
 		mailer:                   mailer,
 		userStoreCleanup:         cleanup,
+		loginRateLimiter:         loginLimiter,
+		sendCodeRateLimiter:      sendCodeLimiter,
 	}, nil
 }
 
@@ -398,6 +446,21 @@ func (s *Service) SendLoginEmailCode(
 		return nil, status.Error(codes.InvalidArgument, "email is required")
 	}
 
+	if s.sendCodeRateLimiter != nil {
+		allowed, rlErr := s.sendCodeRateLimiter.IsAllowed(ctx, email)
+		if rlErr != nil {
+			slog.ErrorContext(ctx, "send-code rate limiter error", "error", rlErr)
+			// fail open — a limiter error must not prevent legitimate users
+		} else if !allowed {
+			return nil, status.Error(codes.ResourceExhausted, "too many verification code requests, please try again later")
+		}
+		if rlErr == nil {
+			if recordErr := s.sendCodeRateLimiter.Record(ctx, email); recordErr != nil {
+				slog.ErrorContext(ctx, "failed to record send-code attempt", "error", recordErr)
+			}
+		}
+	}
+
 	code, err := generateEmailCode()
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to generate email code", "error", err)
@@ -501,12 +564,27 @@ func (s *Service) LoginByEmailCode(
 		return nil, status.Error(codes.InvalidArgument, "email and code are required")
 	}
 
+	if s.loginRateLimiter != nil {
+		allowed, rlErr := s.loginRateLimiter.IsAllowed(ctx, email)
+		if rlErr != nil {
+			slog.ErrorContext(ctx, "login rate limiter error", "error", rlErr)
+			// fail open
+		} else if !allowed {
+			return nil, status.Error(codes.ResourceExhausted, "too many failed attempts, please try again later")
+		}
+	}
+
 	ok, err := s.emailCodeStore.Consume(ctx, email, code)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to validate verification code", "error", err)
 		return nil, status.Error(codes.Internal, "failed to validate code")
 	}
 	if !ok {
+		if s.loginRateLimiter != nil {
+			if recordErr := s.loginRateLimiter.Record(ctx, email); recordErr != nil {
+				slog.ErrorContext(ctx, "failed to record login failure", "error", recordErr)
+			}
+		}
 		return nil, status.Error(codes.Unauthenticated, "invalid or expired code")
 	}
 
@@ -520,6 +598,12 @@ func (s *Service) LoginByEmailCode(
 		}
 	default:
 		return nil, status.Error(codes.Internal, "failed to fetch user")
+	}
+
+	if s.loginRateLimiter != nil {
+		if resetErr := s.loginRateLimiter.Reset(ctx, email); resetErr != nil {
+			slog.ErrorContext(ctx, "failed to reset login rate limit", "error", resetErr)
+		}
 	}
 
 	s.recordLogin(ctx, usr)
@@ -586,6 +670,16 @@ func (s *Service) LoginByPassword(
 		return nil, status.Error(codes.InvalidArgument, "email and password are required")
 	}
 
+	if s.loginRateLimiter != nil {
+		allowed, rlErr := s.loginRateLimiter.IsAllowed(ctx, email)
+		if rlErr != nil {
+			slog.ErrorContext(ctx, "login rate limiter error", "error", rlErr)
+			// fail open
+		} else if !allowed {
+			return nil, status.Error(codes.ResourceExhausted, "too many failed attempts, please try again later")
+		}
+	}
+
 	usr, err := s.userStore.GetByEmail(ctx, email)
 	switch {
 	case err == nil:
@@ -606,7 +700,18 @@ func (s *Service) LoginByPassword(
 		return nil, status.Error(codes.Internal, "failed to verify password")
 	}
 	if !valid {
+		if s.loginRateLimiter != nil {
+			if recordErr := s.loginRateLimiter.Record(ctx, email); recordErr != nil {
+				slog.ErrorContext(ctx, "failed to record login failure", "error", recordErr)
+			}
+		}
 		return nil, status.Error(codes.Unauthenticated, "invalid credentials")
+	}
+
+	if s.loginRateLimiter != nil {
+		if resetErr := s.loginRateLimiter.Reset(ctx, email); resetErr != nil {
+			slog.ErrorContext(ctx, "failed to reset login rate limit", "error", resetErr)
+		}
 	}
 
 	s.recordLogin(ctx, usr)
