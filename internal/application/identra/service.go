@@ -126,14 +126,14 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		loginLockoutDuration = DefaultLoginLockoutDuration
 	}
 
-	loginLimiter, limiterErr := cache.NewRedisRateLimiter(
+	loginLimiter, loginLimiterErr := cache.NewRedisRateLimiter(
 		redis.NewRDB(*cfg.RedisClient),
 		"identra:rl:login:",
 		loginMaxAttempts,
 		loginLockoutDuration,
 	)
-	if limiterErr != nil {
-		return nil, fmt.Errorf("failed to initialize login rate limiter: %w", limiterErr)
+	if loginLimiterErr != nil {
+		return nil, fmt.Errorf("failed to initialize login rate limiter: %w", loginLimiterErr)
 	}
 
 	sendCodeMaxAttempts := cfg.SendCodeMaxAttempts
@@ -145,14 +145,14 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		sendCodeWindow = DefaultSendCodeWindow
 	}
 
-	sendCodeLimiter, limiterErr := cache.NewRedisRateLimiter(
+	sendCodeLimiter, sendCodeLimiterErr := cache.NewRedisRateLimiter(
 		redis.NewRDB(*cfg.RedisClient),
 		"identra:rl:send_code:",
 		sendCodeMaxAttempts,
 		sendCodeWindow,
 	)
-	if limiterErr != nil {
-		return nil, fmt.Errorf("failed to initialize send-code rate limiter: %w", limiterErr)
+	if sendCodeLimiterErr != nil {
+		return nil, fmt.Errorf("failed to initialize send-code rate limiter: %w", sendCodeLimiterErr)
 	}
 
 	return &Service{
