@@ -11,9 +11,10 @@ goredis "github.com/redis/go-redis/v9"
 )
 
 // NewRedisOAuthStateStore creates a Redis-backed OAuth state store.
+// Expiry is enforced by Redis TTL; the ExpiresAt field of returned State is not populated.
 func NewRedisOAuthStateStore(ttl time.Duration, rdb goredis.UniversalClient) (oauth.StateStore, error) {
 if ttl <= 0 {
-ttl = 10 * time.Minute
+ttl = time.Minute
 }
 if rdb == nil {
 return nil, errors.New("redis client is required for oauth state store")
@@ -56,6 +57,7 @@ return v
 
 // Consume retrieves and atomically removes the state from Redis.
 // Returns false (with no error) when the state is not found or has expired.
+// ExpiresAt is not populated in the returned State because Redis enforces expiry via TTL.
 func (s *redisOAuthStateStore) Consume(ctx context.Context, state string) (oauth.State, bool, error) {
 res, err := consumeStateScript.Run(ctx, s.rdb, []string{s.key(state)}).Text()
 if err != nil {
