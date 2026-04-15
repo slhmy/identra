@@ -112,9 +112,16 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		Endpoint:     github.Endpoint,
 	}
 
-	emailStore, storeErr := cache.NewRedisEmailCodeStore(10*time.Minute, redis.NewRDB(*cfg.RedisClient))
+	rdb := redis.NewRDB(*cfg.RedisClient)
+
+	emailStore, storeErr := cache.NewRedisEmailCodeStore(10*time.Minute, rdb)
 	if storeErr != nil {
 		return nil, fmt.Errorf("failed to initialize email code store: %w", storeErr)
+	}
+
+	oauthStore, storeErr := cache.NewRedisOAuthStateStore(stateTTL, rdb)
+	if storeErr != nil {
+		return nil, fmt.Errorf("failed to initialize oauth state store: %w", storeErr)
 	}
 
 	loginMaxAttempts := cfg.LoginMaxAttempts
@@ -127,7 +134,7 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 	}
 
 	loginLimiter, loginLimiterErr := cache.NewRedisRateLimiter(
-		redis.NewRDB(*cfg.RedisClient),
+		rdb,
 		"identra:rl:login:",
 		loginMaxAttempts,
 		loginLockoutDuration,
@@ -146,7 +153,7 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 	}
 
 	sendCodeLimiter, sendCodeLimiterErr := cache.NewRedisRateLimiter(
-		redis.NewRDB(*cfg.RedisClient),
+		rdb,
 		"identra:rl:send_code:",
 		sendCodeMaxAttempts,
 		sendCodeWindow,
@@ -159,7 +166,7 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		userStore:                userStore,
 		keyManager:               km,
 		tokenCfg:                 tokenCfg,
-		oauthStateStore:          oauth.NewInMemoryStateStore(stateTTL),
+		oauthStateStore:          oauthStore,
 		emailCodeStore:           emailStore,
 		githubOAuthConfig:        githubCfg,
 		oauthFetchEmailIfMissing: cfg.OAuthFetchEmailIfMissing,
@@ -278,7 +285,10 @@ func (s *Service) GetOAuthAuthorizationURL(
 		slog.ErrorContext(ctx, "failed to generate oauth state", "error", err)
 		return nil, status.Error(codes.Internal, "failed to generate oauth state")
 	}
-	s.oauthStateStore.Add(state, provider, redirectURL)
+	if err := s.oauthStateStore.Add(ctx, state, provider, redirectURL); err != nil {
+		slog.ErrorContext(ctx, "failed to store oauth state", "error", err)
+		return nil, status.Error(codes.Internal, "failed to store oauth state")
+	}
 
 	authURL := oauthCfg.AuthCodeURL(state, oauth2.AccessTypeOffline)
 	return &identra_v1_pb.GetOAuthAuthorizationURLResponse{Url: authURL, State: state}, nil
@@ -295,7 +305,11 @@ func (s *Service) LoginByOAuth(
 		return nil, status.Error(codes.InvalidArgument, "state is required")
 	}
 
-	stateData, ok := s.oauthStateStore.Consume(req.GetState())
+	stateData, ok, err := s.oauthStateStore.Consume(ctx, req.GetState())
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to consume oauth state", "error", err)
+		return nil, status.Error(codes.Internal, "failed to validate oauth state")
+	}
 	if !ok {
 		return nil, status.Error(codes.InvalidArgument, "invalid or expired state")
 	}
@@ -369,7 +383,11 @@ func (s *Service) BindUserByOAuth(
 		return nil, status.Error(codes.Internal, "failed to fetch user")
 	}
 
-	stateData, ok := s.oauthStateStore.Consume(req.GetState())
+	stateData, ok, err := s.oauthStateStore.Consume(ctx, req.GetState())
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to consume oauth state", "error", err)
+		return nil, status.Error(codes.Internal, "failed to validate oauth state")
+	}
 	if !ok {
 		return nil, status.Error(codes.InvalidArgument, "invalid or expired state")
 	}

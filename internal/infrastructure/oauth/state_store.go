@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"sync"
 	"time"
 )
@@ -14,8 +15,11 @@ type State struct {
 
 // StateStore defines the interface for OAuth state storage.
 type StateStore interface {
-	Add(state, provider, redirectURL string)
-	Consume(state string) (State, bool)
+	// Add stores a new state with its provider and redirect URL.
+	Add(ctx context.Context, state, provider, redirectURL string) error
+	// Consume returns the state details when valid and removes it from the store.
+	// Returns false when the state is not found or has expired.
+	Consume(ctx context.Context, state string) (State, bool, error)
 }
 
 type inMemoryStateStore struct {
@@ -36,7 +40,7 @@ func NewInMemoryStateStore(ttl time.Duration) StateStore {
 }
 
 // Add stores a new state with its provider and redirect URL.
-func (s *inMemoryStateStore) Add(state, provider, redirectURL string) {
+func (s *inMemoryStateStore) Add(_ context.Context, state, provider, redirectURL string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -46,25 +50,26 @@ func (s *inMemoryStateStore) Add(state, provider, redirectURL string) {
 		RedirectURL: redirectURL,
 		ExpiresAt:   time.Now().Add(s.ttl),
 	}
+	return nil
 }
 
 // Consume returns the state details when valid and removes it from the store.
-func (s *inMemoryStateStore) Consume(state string) (State, bool) {
+func (s *inMemoryStateStore) Consume(_ context.Context, state string) (State, bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.cleanupLocked()
 	value, ok := s.values[state]
 	if !ok {
-		return State{}, false
+		return State{}, false, nil
 	}
 	delete(s.values, state)
 
 	if time.Now().After(value.ExpiresAt) {
-		return State{}, false
+		return State{}, false, nil
 	}
 
-	return value, true
+	return value, true, nil
 }
 
 func (s *inMemoryStateStore) cleanupLocked() {
