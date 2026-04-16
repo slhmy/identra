@@ -54,6 +54,13 @@ func (r *mongoExternalIdentityStore) ensureIndexes(ctx context.Context) error {
 			Options: options.Index().SetUnique(true).SetName("idx_provider_user_id_unique"),
 		},
 		{
+			Keys: bson.D{
+				{Key: "provider", Value: 1},
+				{Key: "user_id", Value: 1},
+			},
+			Options: options.Index().SetUnique(true).SetName("idx_provider_user_id_per_user_unique"),
+		},
+		{
 			Keys:    bson.D{{Key: "user_id", Value: 1}},
 			Options: options.Index().SetName("idx_user_id"),
 		},
