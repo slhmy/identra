@@ -44,12 +44,26 @@ func NewMongoUserStore(
 	return repo, nil
 }
 
+func isIndexNotFoundError(err error) bool {
+	var cmdErr mongo.CommandError
+	if errors.As(err, &cmdErr) && cmdErr.Code == 27 {
+		return true
+	}
+
+	return strings.Contains(strings.ToLower(err.Error()), "index not found")
+}
+
 func (r *mongoUserStore) ensureIndexes(ctx context.Context) error {
 	// Drop the stale github_id index left over from the old schema, if present.
-	// This is a best-effort migration step; the error is intentionally ignored so
-	// that both fresh deployments (index never existed) and upgraded ones work.
+	// Ignore only the expected "index not found" case so fresh deployments and
+	// upgraded ones both work, but fail fast for operational problems.
 	if err := r.coll.Indexes().DropOne(ctx, "idx_github_id_unique"); err != nil {
-		slog.DebugContext(ctx, "could not drop stale github_id index (may not exist)", "error", err)
+		if isIndexNotFoundError(err) {
+			slog.DebugContext(ctx, "stale github_id index not present", "error", err)
+		} else {
+			slog.WarnContext(ctx, "failed to drop stale github_id index", "error", err)
+			return err
+		}
 	}
 
 	models := []mongo.IndexModel{
