@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/poly-workshop/identra/internal/domain"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // mockUserStore is a simple in-memory user store for testing.
@@ -161,21 +163,18 @@ func TestEnsureOAuthUser_WithoutEmail(t *testing.T) {
 		Email:    "",
 	}
 
-	user, err := svc.ensureOAuthUser(context.Background(), info)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	_, err := svc.ensureOAuthUser(context.Background(), info)
+	if err == nil {
+		t.Fatal("expected error for missing email, got nil")
+	}
+	if st, ok := status.FromError(err); !ok || st.Code() != codes.FailedPrecondition {
+		t.Errorf("expected FailedPrecondition, got %v", err)
 	}
 
-	if user.Email != "" {
-		t.Errorf("expected empty email, got %q", user.Email)
-	}
-
-	id, lookupErr := extStore.GetByProviderID(context.Background(), "github", "github456")
-	if lookupErr != nil {
-		t.Fatalf("expected external identity to exist, got %v", lookupErr)
-	}
-	if id.UserID != user.ID {
-		t.Errorf("expected external identity user_id %q, got %q", user.ID, id.UserID)
+	// No user should have been created.
+	count, _ := store.Count(context.Background())
+	if count != 0 {
+		t.Errorf("expected no users after no-email rejection, got %d", count)
 	}
 }
 
@@ -249,30 +248,6 @@ func TestEnsureOAuthUser_LinkExistingUserByEmail(t *testing.T) {
 	}
 	if id.UserID != existingUser.ID {
 		t.Errorf("expected external identity user_id %q, got %q", existingUser.ID, id.UserID)
-	}
-}
-
-func TestEnsureOAuthUser_IdentityCreateFailure_OrphanedUserDeleted_NoEmail(t *testing.T) {
-	store := newMockUserStore()
-	extStore := newMockExternalIdentityStore()
-	extStore.forceCreateErr = domain.ErrAlreadyExists
-	svc := &Service{userStore: store, externalIdentityStore: extStore}
-
-	info := UserInfo{
-		Provider: "github",
-		ID:       "github-fail",
-		Email:    "",
-	}
-
-	_, err := svc.ensureOAuthUser(context.Background(), info)
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-
-	// Verify the orphaned user was cleaned up.
-	count, _ := store.Count(context.Background())
-	if count != 0 {
-		t.Errorf("expected no users after identity create failure, got %d", count)
 	}
 }
 
