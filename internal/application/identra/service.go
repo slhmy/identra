@@ -863,7 +863,7 @@ func (s *Service) ensureOAuthUser(ctx context.Context, info UserInfo) (*domain.U
 						if existingIdentity.UserID == byEmail.ID {
 							return byEmail, nil
 						}
-						return nil, status.Error(codes.AlreadyExists, "oauth account already linked")
+						return nil, status.Error(codes.AlreadyExists, "oauth account already linked to another user")
 					}
 					return nil, status.Error(codes.Internal, "failed to link oauth account")
 				}
