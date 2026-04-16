@@ -426,6 +426,9 @@ func (s *Service) BindUserByOAuth(
 			ProviderUserID: userInfo.ID,
 		}
 		if createErr := s.externalIdentityStore.Create(ctx, identity); createErr != nil {
+			if errors.Is(createErr, domain.ErrAlreadyExists) {
+				return nil, status.Error(codes.AlreadyExists, "oauth account already linked")
+			}
 			return nil, status.Error(codes.Internal, "failed to link oauth account")
 		}
 	default:
