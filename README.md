@@ -60,6 +60,14 @@ from_email = "noreply@example.com"
 
 Default local values include `grpc_port = 50051`, `http_port = 8080`, `grpc_endpoint = "localhost:50051"` for the gateway, Redis at `localhost:6379`, SQLite at `data/users.db`, `log.format = "tint"`, and 15-minute access / 7-day refresh tokens.
 
+For browser clients on other origins, set explicit CORS origins:
+
+```toml
+[cors]
+allowed_origins = ["https://app.example.com"]
+allow_credentials = true
+```
+
 ## Integrating Identra with Your Service
 
 Identra provides both HTTP REST API and gRPC interfaces for integration.

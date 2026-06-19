@@ -25,14 +25,26 @@ func init() {
 
 // Gateway wraps the grpc-gateway mux and provides HTTP endpoints for gRPC services
 type Gateway struct {
-	mux       *runtime.ServeMux
-	grpcConn  *grpc.ClientConn
-	staticDir string
-	apiPrefix string
+	mux                  *runtime.ServeMux
+	grpcConn             *grpc.ClientConn
+	staticDir            string
+	apiPrefix            string
+	corsAllowedOrigins   []string
+	corsAllowCredentials bool
 }
 
 // NewGateway creates a new gateway instance
-func NewGateway(grpcEndpoint, staticDir, apiPrefix string) (*Gateway, error) {
+func NewGateway(
+	grpcEndpoint,
+	staticDir,
+	apiPrefix string,
+	corsAllowedOrigins []string,
+	corsAllowCredentials bool,
+) (*Gateway, error) {
+	if err := validateCORSConfig(corsAllowedOrigins, corsAllowCredentials); err != nil {
+		return nil, err
+	}
+
 	// Create gRPC connection
 	conn, err := grpc.NewClient(grpcEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -74,18 +86,32 @@ func NewGateway(grpcEndpoint, staticDir, apiPrefix string) (*Gateway, error) {
 	}
 
 	return &Gateway{
-		mux:       mux,
-		grpcConn:  conn,
-		staticDir: staticDir,
-		apiPrefix: apiPrefix,
+		mux:                  mux,
+		grpcConn:             conn,
+		staticDir:            staticDir,
+		apiPrefix:            apiPrefix,
+		corsAllowedOrigins:   corsAllowedOrigins,
+		corsAllowCredentials: corsAllowCredentials,
 	}, nil
+}
+
+func validateCORSConfig(allowedOrigins []string, allowCredentials bool) error {
+	if !allowCredentials {
+		return nil
+	}
+	for _, origin := range allowedOrigins {
+		if strings.TrimSpace(origin) == "*" {
+			return fmt.Errorf("cors.allowed_origins cannot contain * when cors.allow_credentials is true")
+		}
+	}
+	return nil
 }
 
 // Handler returns an HTTP handler with CORS support and static file serving
 func (g *Gateway) Handler() http.Handler {
 	// Setup CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"}, // In production, specify your frontend domains
+		AllowedOrigins: g.corsAllowedOrigins,
 		AllowedMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
@@ -103,7 +129,7 @@ func (g *Gateway) Handler() http.Handler {
 			"X-Client-Secret",
 		},
 		ExposedHeaders:   []string{},
-		AllowCredentials: true,
+		AllowCredentials: g.corsAllowCredentials,
 	})
 
 	// Create a multiplexer that handles both API and static files
@@ -166,7 +192,13 @@ func main() {
 	apiPrefix := "/api/"
 
 	// Create gateway instance
-	gateway, err := NewGateway(cfg.GRPCEndpoint, staticDir, apiPrefix)
+	gateway, err := NewGateway(
+		cfg.GRPCEndpoint,
+		staticDir,
+		apiPrefix,
+		cfg.CORS.AllowedOrigins,
+		cfg.CORS.AllowCredentials,
+	)
 	if err != nil {
 		log.Fatalf("failed to create gateway: %v", err)
 	}

@@ -41,5 +41,7 @@ func logGatewayConfig() {
 	slog.Info("Gateway server configuration",
 		"http_port", config.GetUint("http_port"),
 		"grpc_endpoint", config.GetString("grpc_endpoint"),
+		"cors.allowed_origins", config.GetStringSlice("cors.allowed_origins"),
+		"cors.allow_credentials", config.GetBool("cors.allow_credentials"),
 	)
 }

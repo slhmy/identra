@@ -7,6 +7,10 @@ const (
 	HTTPPortKey     = "http_port"
 	GRPCEndpointKey = "grpc_endpoint"
 
+	// CORS configuration keys
+	CORSAllowedOriginsKey   = "cors.allowed_origins"
+	CORSAllowCredentialsKey = "cors.allow_credentials"
+
 	// Auth configuration keys
 	AuthRSAPrivateKeyKey            = "auth.rsa_private_key"
 	AuthOAuthStateExpirationKey     = "auth.oauth_state_expiration"
