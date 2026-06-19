@@ -58,6 +58,9 @@ type Service struct {
 	// sendCodeRateLimiter limits how many email verification codes can be sent
 	// to a single address within the configured window.
 	sendCodeRateLimiter cache.RateLimiter
+	// refreshTokenRevocations blocks reuse of refresh tokens after logout,
+	// explicit revocation, or successful refresh-token rotation.
+	refreshTokenRevocations cache.RefreshTokenRevocationStore
 }
 
 func NewService(ctx context.Context, cfg Config) (*Service, error) {
@@ -166,6 +169,11 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		return nil, fmt.Errorf("failed to initialize send-code rate limiter: %w", sendCodeLimiterErr)
 	}
 
+	refreshRevocations, refreshRevocationsErr := cache.NewRedisRefreshTokenRevocationStore(rdb)
+	if refreshRevocationsErr != nil {
+		return nil, fmt.Errorf("failed to initialize refresh token revocation store: %w", refreshRevocationsErr)
+	}
+
 	return &Service{
 		userStore:                userStore,
 		externalIdentityStore:    externalIdentityStore,
@@ -179,6 +187,7 @@ func NewService(ctx context.Context, cfg Config) (*Service, error) {
 		userStoreCleanup:         cleanup,
 		loginRateLimiter:         loginLimiter,
 		sendCodeRateLimiter:      sendCodeLimiter,
+		refreshTokenRevocations:  refreshRevocations,
 	}, nil
 }
 
@@ -761,17 +770,76 @@ func (s *Service) RefreshToken(
 	ctx context.Context,
 	req *identra_v1_pb.RefreshTokenRequest,
 ) (*identra_v1_pb.RefreshTokenResponse, error) {
-	if strings.TrimSpace(req.GetRefreshToken()) == "" {
+	refreshToken := strings.TrimSpace(req.GetRefreshToken())
+	if refreshToken == "" {
 		return nil, status.Error(codes.InvalidArgument, "refresh token is required")
 	}
 
-	tokenPair, err := security.RefreshTokenPair(req.GetRefreshToken(), s.tokenCfg)
+	claims, err := security.ValidateRefreshToken(refreshToken, s.tokenCfg.PublicKey)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to refresh token pair", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid refresh token")
 	}
+	if err := s.ensureRefreshTokenActive(ctx, claims); err != nil {
+		return nil, err
+	}
+
+	tokenPair, err := security.NewTokenPair(claims.UserID, s.tokenCfg)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to refresh token pair", "error", err)
+		return nil, status.Error(codes.Internal, "failed to refresh token")
+	}
+	s.revokeRefreshClaims(ctx, claims)
 
 	return &identra_v1_pb.RefreshTokenResponse{Token: tokenPair}, nil
+}
+
+func (s *Service) RevokeRefreshToken(
+	ctx context.Context,
+	req *identra_v1_pb.RevokeRefreshTokenRequest,
+) (*identra_v1_pb.RevokeRefreshTokenResponse, error) {
+	refreshToken := strings.TrimSpace(req.GetRefreshToken())
+	if refreshToken == "" {
+		return nil, status.Error(codes.InvalidArgument, "refresh token is required")
+	}
+
+	claims, err := security.ValidateRefreshToken(refreshToken, s.tokenCfg.PublicKey)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "invalid refresh token")
+	}
+	if err := s.ensureRefreshTokenActive(ctx, claims); err != nil {
+		return nil, err
+	}
+	if err := s.revokeRefreshClaims(ctx, claims); err != nil {
+		return nil, err
+	}
+
+	return &identra_v1_pb.RevokeRefreshTokenResponse{}, nil
+}
+
+func (s *Service) ensureRefreshTokenActive(ctx context.Context, claims *security.StandardClaims) error {
+	if s.refreshTokenRevocations == nil {
+		return nil
+	}
+	revoked, err := s.refreshTokenRevocations.IsRevoked(ctx, claims.TokenID)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to check refresh token revocation", "error", err)
+		return status.Error(codes.Internal, "failed to validate refresh token")
+	}
+	if revoked {
+		return status.Error(codes.Unauthenticated, "refresh token has been revoked")
+	}
+	return nil
+}
+
+func (s *Service) revokeRefreshClaims(ctx context.Context, claims *security.StandardClaims) error {
+	if s.refreshTokenRevocations == nil || claims == nil || claims.ExpiresAt == nil {
+		return nil
+	}
+	if err := s.refreshTokenRevocations.Revoke(ctx, claims.TokenID, claims.ExpiresAt.Time); err != nil {
+		slog.ErrorContext(ctx, "failed to revoke refresh token", "error", err)
+		return status.Error(codes.Internal, "failed to revoke refresh token")
+	}
+	return nil
 }
 
 func (s *Service) GetCurrentUserLoginInfo(

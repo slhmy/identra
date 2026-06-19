@@ -57,6 +57,12 @@ service IdentraService {
       body: "*"
     };
   }
+  rpc RevokeRefreshToken(RevokeRefreshTokenRequest) returns (RevokeRefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/token/revoke"
+      body: "*"
+    };
+  }
 
   // ListOAuthProviders returns all supported OAuth providers with their
   // availability status so that upstream services can conditionally render

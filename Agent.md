@@ -38,6 +38,7 @@ The gateway mounts the API under an **`/api/`** prefix, so routes below are typi
 
 - **Tokens**
   - `POST /token/refresh`: exchange `{ refresh_token }` for a new `TokenPair`.
+  - `POST /token/revoke`: revoke `{ refresh_token }` during logout.
 
 - **Session introspection**
   - `POST /me/login-info`: returns linked login methods for the bearer token (email, GitHub link status, etc.).
@@ -103,6 +104,8 @@ The older JSON body `access_token` field is still accepted for compatibility.
 ### Refresh tokens
 
 1. `POST /token/refresh` with `{ "refresh_token": "<refresh token>" }` → new `TokenPair`
+2. Refresh-token rotation revokes the used refresh token until its original expiry.
+3. `POST /token/revoke` with `{ "refresh_token": "<refresh token>" }` logs out that refresh token.
 
 ## Local development (service-side)
 

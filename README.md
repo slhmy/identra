@@ -345,6 +345,16 @@ async function refreshAccessToken(refreshToken) {
 }
 ```
 
+Refresh tokens are rotated: once a refresh token is used successfully, Identra revokes that refresh token until its original expiry.
+
+To revoke a refresh token during logout:
+
+```bash
+curl -X POST http://localhost:8080/token/revoke \
+  -H "Content-Type: application/json" \
+  -d '{"refresh_token": "your-refresh-token"}'
+```
+
 ### Getting User Information
 
 Retrieve information about the currently authenticated user:
@@ -417,6 +427,7 @@ For a complete API reference, see the OpenAPI specification at `gen/openapi/iden
 - `POST /password/register` - Register with email and password
 - `POST /password/login` - Login with email and password
 - `POST /token/refresh` - Refresh access token
+- `POST /token/revoke` - Revoke a refresh token
 - `POST /me/login-info` - Get current user's login information
 
 ## Advanced Topics

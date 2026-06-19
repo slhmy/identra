@@ -354,6 +354,38 @@
           "IdentraService"
         ]
       }
+    },
+    "/token/revoke": {
+      "post": {
+        "operationId": "IdentraService_RevokeRefreshToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RevokeRefreshTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RevokeRefreshTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "IdentraService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -424,7 +456,7 @@
       "properties": {
         "access_token": {
           "type": "string",
-          "title": "Access token for the currently authenticated user"
+          "description": "Deprecated: prefer Authorization: Bearer \u003caccess_token\u003e."
         }
       }
     },
@@ -670,6 +702,17 @@
           "$ref": "#/definitions/v1TokenPair"
         }
       }
+    },
+    "v1RevokeRefreshTokenRequest": {
+      "type": "object",
+      "properties": {
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
+    "v1RevokeRefreshTokenResponse": {
+      "type": "object"
     },
     "v1SendLoginEmailCodeRequest": {
       "type": "object",

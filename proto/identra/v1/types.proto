@@ -128,6 +128,11 @@ message RefreshTokenResponse {
   TokenPair token = 1;
 }
 
+message RevokeRefreshTokenRequest {
+  string refresh_token = 1;
+}
+message RevokeRefreshTokenResponse {}
+
 // OAuthConnection describes one OAuth identity linked to the user.
 message OAuthConnection {
   // Provider name, e.g. "github".
