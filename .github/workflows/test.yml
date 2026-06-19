@@ -15,11 +15,31 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
+      - name: Set up Buf
+        uses: bufbuild/buf-setup-action@v1
+
+      - name: Vet
+        run: go vet ./...
+
       - name: Run tests
         run: go test ./...
+
+      - name: Lint protobuf
+        run: buf lint
+
+      - name: Check protobuf breaking changes
+        if: github.event_name == 'pull_request'
+        run: buf breaking --against '.git#branch=origin/main'
+
+      - name: Check generated files are current
+        run: |
+          buf generate --clean
+          git diff --exit-code gen
