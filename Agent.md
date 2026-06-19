@@ -26,13 +26,14 @@ The gateway mounts the API under an **`/api/`** prefix, so routes below are typi
 - **OAuth (GitHub)**
   - `GET /oauth/url?provider=github&redirect_url=...`: returns `{ url, state }` for starting OAuth.
   - `POST /oauth/login`: exchange `{ code, state }` for a `TokenPair`.
-  - `POST /oauth/bind`: bind GitHub identity to an existing user with `{ access_token, code, state }`.
+  - `POST /oauth/bind`: bind GitHub identity to an existing user with `Authorization: Bearer ...` and `{ code, state }`.
 
 - **Email verification code**
   - `POST /email/code`: send a login code to `{ email, use_html }`.
   - `POST /email/login`: exchange `{ email, code }` for a `TokenPair`.
 
 - **Email + password**
+  - `POST /password/register`: create a password account with `{ email, password }`.
   - `POST /password/login`: exchange `{ email, password }` for a `TokenPair`.
 
 - **Tokens**
@@ -81,11 +82,11 @@ The older JSON body `access_token` field is still accepted for compatibility.
 2. User receives a 6-digit code (stored in Redis with TTL).
 3. `POST /email/login` with `{ "email": "...", "code": "123456" }` → `TokenPair`
 
-### Password login
+### Password registration and login
 
-1. `POST /password/login` with `{ "email": "...", "password": "..." }`
-2. If the user does not exist, Identra creates it and stores a password hash.
-3. If the user exists but has no password set yet, Identra sets it on first login.
+1. `POST /password/register` with `{ "email": "...", "password": "..." }` to create the account and receive a `TokenPair`.
+2. `POST /password/login` with `{ "email": "...", "password": "..." }` for later sessions.
+3. Login returns `NotFound` for unknown users and `FailedPrecondition` when an OAuth/email-code account has no password set.
 
 ### GitHub OAuth login
 
@@ -125,6 +126,10 @@ Config keys are defined in `internal/infrastructure/configs/keys.go`. Built-in l
 - **Ports**
   - `grpc_port`
   - `http_port`
+  - `grpc_endpoint` (gateway upstream target)
+- **CORS**
+  - `cors.allowed_origins`
+  - `cors.allow_credentials`
 - **Auth**
   - `auth.rsa_private_key` (optional; if empty Identra generates a key pair at startup)
   - `auth.oauth_state_expiration`
@@ -139,6 +144,6 @@ Config keys are defined in `internal/infrastructure/configs/keys.go`. Built-in l
 - **SMTP**
   - `smtp_mailer.*`
 
-### Important operational note (OAuth state storage)
+### OAuth state storage
 
-OAuth `state` is currently stored in an **in-memory** store (`internal/infrastructure/oauth/state_store.go`). In a multi-instance deployment, you’ll need a shared store (e.g., Redis) to make the OAuth flow work reliably across replicas.
+OAuth `state` is stored in Redis via `internal/infrastructure/cache/redis_oauth_state_store.go`, so multi-instance deployments share OAuth state as long as all replicas use the same Redis backend.

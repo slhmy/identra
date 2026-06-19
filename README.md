@@ -412,6 +412,7 @@ For a complete API reference, see the OpenAPI specification at `gen/openapi/iden
 - `POST /oauth/bind` - Bind OAuth account to existing user
 - `POST /email/code` - Send login code via email
 - `POST /email/login` - Login with email code
+- `POST /password/register` - Register with email and password
 - `POST /password/login` - Login with email and password
 - `POST /token/refresh` - Refresh access token
 - `POST /me/login-info` - Get current user's login information
