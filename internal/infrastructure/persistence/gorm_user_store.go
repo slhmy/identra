@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/poly-workshop/identra/internal/domain"
 	"gorm.io/gorm"
@@ -27,6 +28,12 @@ func wrapGormError(err error) error {
 		return domain.ErrNotFound
 	}
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return domain.ErrAlreadyExists
+	}
+	errMsg := strings.ToLower(err.Error())
+	if strings.Contains(errMsg, "unique constraint failed") ||
+		strings.Contains(errMsg, "duplicate key") ||
+		strings.Contains(errMsg, "duplicate entry") {
 		return domain.ErrAlreadyExists
 	}
 	return err
