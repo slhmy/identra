@@ -4,7 +4,7 @@ import (
 	"context"
 
 	identra_v1_pb "github.com/poly-workshop/identra/gen/go/identra/v1"
-	"github.com/poly-workshop/identra/internal/domain"
+	"github.com/poly-workshop/identra/internal/ports"
 	"github.com/poly-workshop/identra/internal/security"
 	"golang.org/x/oauth2"
 )
@@ -15,8 +15,8 @@ type Service struct {
 
 	emailCodeStore           EmailCodeStore
 	oauthStateStore          OAuthStateStore
-	userStore                domain.UserStore
-	externalIdentityStore    domain.ExternalIdentityStore
+	userStore                ports.UserStore
+	externalIdentityStore    ports.ExternalIdentityStore
 	userStoreCleanup         func(context.Context) error
 	keyManager               *security.KeyManager
 	tokenCfg                 security.TokenConfig

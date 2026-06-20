@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/poly-workshop/identra/internal/domain"
+	"github.com/poly-workshop/identra/internal/ports"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +16,7 @@ type gormUserStore struct {
 }
 
 // NewGormUserStore creates a new GORM-based user store.
-func NewGormUserStore(db *gorm.DB) domain.UserStore {
+func NewGormUserStore(db *gorm.DB) ports.UserStore {
 	return &gormUserStore{db: db}
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/poly-workshop/identra/internal/domain"
+	"github.com/poly-workshop/identra/internal/ports"
 	"github.com/poly-workshop/identra/internal/security"
 	"golang.org/x/oauth2"
 )
@@ -13,8 +13,8 @@ import (
 type Dependencies struct {
 	EmailCodeStore           EmailCodeStore
 	OAuthStateStore          OAuthStateStore
-	UserStore                domain.UserStore
-	ExternalIdentityStore    domain.ExternalIdentityStore
+	UserStore                ports.UserStore
+	ExternalIdentityStore    ports.ExternalIdentityStore
 	UserStoreCleanup         func(context.Context) error
 	KeyManager               *security.KeyManager
 	TokenConfig              security.TokenConfig

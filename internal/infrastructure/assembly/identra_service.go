@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/poly-workshop/identra/internal/application/identra"
-	"github.com/poly-workshop/identra/internal/domain"
 	"github.com/poly-workshop/identra/internal/infrastructure/cache"
 	"github.com/poly-workshop/identra/internal/infrastructure/cache/redis"
 	"github.com/poly-workshop/identra/internal/infrastructure/configs"
@@ -16,6 +15,7 @@ import (
 	"github.com/poly-workshop/identra/internal/infrastructure/oauth"
 	"github.com/poly-workshop/identra/internal/infrastructure/persistence"
 	"github.com/poly-workshop/identra/internal/infrastructure/persistence/gorm"
+	"github.com/poly-workshop/identra/internal/ports"
 	"github.com/poly-workshop/identra/internal/security"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -166,7 +166,7 @@ func validateMailerConfig(cfg smtp.Config) error {
 	}
 }
 
-func buildStores(ctx context.Context, cfg configs.PersistenceConfig) (domain.UserStore, domain.ExternalIdentityStore, func(context.Context) error, error) {
+func buildStores(ctx context.Context, cfg configs.PersistenceConfig) (ports.UserStore, ports.ExternalIdentityStore, func(context.Context) error, error) {
 	repoType := strings.ToLower(strings.TrimSpace(cfg.Type))
 	switch repoType {
 	case "mongo", "mongodb":

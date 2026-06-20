@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/poly-workshop/identra/internal/domain"
+	"github.com/poly-workshop/identra/internal/ports"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +14,7 @@ type gormExternalIdentityStore struct {
 }
 
 // NewGormExternalIdentityStore creates a new GORM-based external identity store.
-func NewGormExternalIdentityStore(db *gorm.DB) domain.ExternalIdentityStore {
+func NewGormExternalIdentityStore(db *gorm.DB) ports.ExternalIdentityStore {
 	return &gormExternalIdentityStore{db: db}
 }
 

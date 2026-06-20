@@ -10,9 +10,10 @@ import (
 
 	"github.com/poly-workshop/identra/internal/domain"
 	gormdb "github.com/poly-workshop/identra/internal/infrastructure/persistence/gorm"
+	"github.com/poly-workshop/identra/internal/ports"
 )
 
-type storeFactory func(t *testing.T) (domain.UserStore, domain.ExternalIdentityStore)
+type storeFactory func(t *testing.T) (ports.UserStore, ports.ExternalIdentityStore)
 
 func TestGormStores_UserStoreContract(t *testing.T) {
 	runUserStoreContract(t, newGormStores)
@@ -22,7 +23,7 @@ func TestGormStores_ExternalIdentityStoreContract(t *testing.T) {
 	runExternalIdentityStoreContract(t, newGormStores)
 }
 
-func newGormStores(t *testing.T) (domain.UserStore, domain.ExternalIdentityStore) {
+func newGormStores(t *testing.T) (ports.UserStore, ports.ExternalIdentityStore) {
 	t.Helper()
 
 	db, err := gormdb.NewDB(gormdb.Config{

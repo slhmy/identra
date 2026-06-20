@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/poly-workshop/identra/internal/domain"
+	"github.com/poly-workshop/identra/internal/ports"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -24,7 +25,7 @@ func NewMongoExternalIdentityStore(
 	client *mongo.Client,
 	databaseName string,
 	collectionName string,
-) (domain.ExternalIdentityStore, error) {
+) (ports.ExternalIdentityStore, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is required")
 	}
