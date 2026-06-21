@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	identra_v1_pb "github.com/poly-workshop/identra/gen/go/identra/v1"
 	"github.com/rs/cors"
+	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"

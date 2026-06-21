@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/poly-workshop/identra/internal/identra"
+	"github.com/slhmy/identra/internal/identra"
 	"gorm.io/gorm"
 )
 

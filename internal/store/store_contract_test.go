@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/poly-workshop/identra/internal/identra"
-	gormdb "github.com/poly-workshop/identra/internal/store/gorm"
+	"github.com/slhmy/identra/internal/identra"
+	gormdb "github.com/slhmy/identra/internal/store/gorm"
 )
 
 type storeFactory func(t *testing.T) (identra.UserStore, identra.ExternalIdentityStore)

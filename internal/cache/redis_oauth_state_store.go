@@ -6,8 +6,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/poly-workshop/identra/internal/oauth"
 	goredis "github.com/redis/go-redis/v9"
+	"github.com/slhmy/identra/internal/oauth"
 )
 
 // NewRedisOAuthStateStore creates a Redis-backed OAuth state store.

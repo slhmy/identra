@@ -12,7 +12,7 @@ import (
 	"sort"
 	"sync"
 
-	identra_v1_pb "github.com/poly-workshop/identra/gen/go/identra/v1"
+	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
 )
 
 const (

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	redisconfig "github.com/poly-workshop/identra/internal/cache/redis"
 	goredis "github.com/redis/go-redis/v9"
+	redisconfig "github.com/slhmy/identra/internal/cache/redis"
 )
 
 func TestRedisEmailCodeStoreContract(t *testing.T) {

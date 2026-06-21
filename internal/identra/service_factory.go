@@ -3,7 +3,8 @@ package identra
 import (
 	"context"
 	"errors"
-	"github.com/poly-workshop/identra/internal/security"
+
+	"github.com/slhmy/identra/internal/security"
 	"golang.org/x/oauth2"
 )
 

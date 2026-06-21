@@ -3,11 +3,11 @@ package config
 import (
 	"time"
 
-	"github.com/poly-workshop/identra/internal/bootstrap"
-	"github.com/poly-workshop/identra/internal/cache/redis"
-	"github.com/poly-workshop/identra/internal/mail/smtp"
-	"github.com/poly-workshop/identra/internal/store/gorm"
-	"github.com/poly-workshop/identra/internal/store/mongo"
+	"github.com/slhmy/identra/internal/bootstrap"
+	"github.com/slhmy/identra/internal/cache/redis"
+	"github.com/slhmy/identra/internal/mail/smtp"
+	"github.com/slhmy/identra/internal/store/gorm"
+	"github.com/slhmy/identra/internal/store/mongo"
 )
 
 type GRPCConfig struct {

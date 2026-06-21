@@ -21,11 +21,11 @@ The easiest way to run Identra is using Docker:
 
 ```bash
 # Run the gRPC service
-docker run -p 50051:50051 -v $(pwd)/config.toml:/app/config.toml ghcr.io/poly-workshop/identra:latest
+docker run -p 50051:50051 -v $(pwd)/config.toml:/app/config.toml ghcr.io/slhmy/identra:latest
 
 # Run the HTTP Gateway (in another terminal)
 docker run -p 8080:8080 -v $(pwd)/config.toml:/app/config.toml \
-  -e SERVICE=identra-gateway ghcr.io/poly-workshop/identra:latest
+  -e SERVICE=identra-gateway ghcr.io/slhmy/identra:latest
 ```
 
 Or build and run from source:

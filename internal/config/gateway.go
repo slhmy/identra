@@ -1,6 +1,6 @@
 package config
 
-import "github.com/poly-workshop/identra/internal/bootstrap"
+import "github.com/slhmy/identra/internal/bootstrap"
 
 type GatewayConfig struct {
 	HTTPPort     uint

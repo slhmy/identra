@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/poly-workshop/identra/internal/bootstrap"
-	"github.com/poly-workshop/identra/internal/config"
-	"github.com/poly-workshop/identra/internal/gateway"
+	"github.com/slhmy/identra/internal/bootstrap"
+	"github.com/slhmy/identra/internal/config"
+	"github.com/slhmy/identra/internal/gateway"
 )
 
 func init() {

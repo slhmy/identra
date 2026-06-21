@@ -1668,7 +1668,7 @@ const file_identra_v1_types_proto_rawDesc = "" +
 	"\x10password_enabled\x18\x04 \x01(\bR\x0fpasswordEnabled\x12H\n" +
 	"\x11oauth_connections\x18\x05 \x03(\v2\x1b.identra.v1.OAuthConnectionR\x10oauthConnectionsB\f\n" +
 	"\n" +
-	"_github_idBBZ@github.com/poly-workshop/identra/gen/go/identra/v1;identra_v1_pbb\x06proto3"
+	"_github_idB:Z8github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pbb\x06proto3"
 
 var (
 	file_identra_v1_types_proto_rawDescOnce sync.Once

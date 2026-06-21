@@ -29,7 +29,7 @@ proto-lint:
 	$(BUF) lint
 
 arch-check:
-	! rg -n "github.com/poly-workshop/identra/internal/(app|bootstrap|cache|config|gateway|mail|oauth|store)" internal/identra
+	! rg -n "github.com/slhmy/identra/internal/(app|bootstrap|cache|config|gateway|mail|oauth|store)" internal/identra
 
 generate: proto-tools
 	PATH="$(PATH_WITH_TOOLS)" $(BUF) generate --clean

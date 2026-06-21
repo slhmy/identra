@@ -5,7 +5,7 @@ package identra.v1;
 import "google/api/annotations.proto";
 import "identra/v1/types.proto";
 
-option go_package = "github.com/poly-workshop/identra/gen/go/identra/v1;identra_v1_pb";
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
 
 service IdentraService {
   // GetJWKS returns the JSON Web Key Set for verifying tokens

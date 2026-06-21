@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package identra.v1;
 
-option go_package = "github.com/poly-workshop/identra/gen/go/identra/v1;identra_v1_pb";
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
 
 // Token contains a JWT value and its Unix expiration time.
 message Token {

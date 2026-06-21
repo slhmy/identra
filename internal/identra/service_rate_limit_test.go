@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	identra_v1_pb "github.com/poly-workshop/identra/gen/go/identra/v1"
-	"github.com/poly-workshop/identra/internal/security"
+	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
+	"github.com/slhmy/identra/internal/security"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 )

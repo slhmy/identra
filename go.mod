@@ -1,4 +1,4 @@
-module github.com/poly-workshop/identra
+module github.com/slhmy/identra
 
 go 1.24.4
 

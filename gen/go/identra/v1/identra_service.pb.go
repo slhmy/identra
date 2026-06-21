@@ -40,7 +40,7 @@ const file_identra_v1_identra_service_proto_rawDesc = "" +
 	"\fRefreshToken\x12\x1f.identra.v1.RefreshTokenRequest\x1a .identra.v1.RefreshTokenResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/token/refresh\x12}\n" +
 	"\x12RevokeRefreshToken\x12%.identra.v1.RevokeRefreshTokenRequest\x1a&.identra.v1.RevokeRefreshTokenResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/token/revoke\x12}\n" +
 	"\x12ListOAuthProviders\x12%.identra.v1.ListOAuthProvidersRequest\x1a&.identra.v1.ListOAuthProvidersResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/oauth/providers\x12\x8d\x01\n" +
-	"\x17GetCurrentUserLoginInfo\x12*.identra.v1.GetCurrentUserLoginInfoRequest\x1a+.identra.v1.GetCurrentUserLoginInfoResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/me/login-infoBBZ@github.com/poly-workshop/identra/gen/go/identra/v1;identra_v1_pbb\x06proto3"
+	"\x17GetCurrentUserLoginInfo\x12*.identra.v1.GetCurrentUserLoginInfoRequest\x1a+.identra.v1.GetCurrentUserLoginInfoResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/me/login-infoB:Z8github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pbb\x06proto3"
 
 var file_identra_v1_identra_service_proto_goTypes = []any{
 	(*GetJWKSRequest)(nil),                   // 0: identra.v1.GetJWKSRequest
