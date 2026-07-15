@@ -50,6 +50,9 @@ make test-integration # run Redis-backed cache contract tests
 `make test-integration` expects Redis at `localhost:6379` by default. Override it with
 `IDENTRA_REDIS_URL=host:port make test-integration` when testing against a different Redis.
 
+`make generate` also runs sqlc for the SQLite queries in `internal/store/sqlite`.
+Install sqlc before generating code, for example with `brew install sqlc`.
+
 ### Architecture Boundary
 
 `internal/identra` is the core service package. It may define service behavior and

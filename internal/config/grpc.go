@@ -9,8 +9,7 @@ import (
 	"github.com/slhmy/identra/internal/bootstrap"
 	"github.com/slhmy/identra/internal/cache/redis"
 	"github.com/slhmy/identra/internal/mail/smtp"
-	"github.com/slhmy/identra/internal/store/gorm"
-	"github.com/slhmy/identra/internal/store/mongo"
+	"github.com/slhmy/identra/internal/store/sqlite"
 )
 
 type GRPCConfig struct {
@@ -41,9 +40,8 @@ type TokenConfig struct {
 }
 
 type PersistenceConfig struct {
-	Type  string
-	GORM  *gorm.Config
-	Mongo *mongo.Config
+	Type   string
+	SQLite sqlite.Config
 }
 
 func (c GRPCConfig) Validate() error {
@@ -83,33 +81,11 @@ func (c AuthConfig) Validate() error {
 
 func (c PersistenceConfig) Validate() error {
 	switch strings.ToLower(strings.TrimSpace(c.Type)) {
-	case "", "gorm", "postgres", "mysql", "sqlite":
-		if c.GORM == nil {
-			return errors.New("gorm config is required")
-		}
-		if strings.TrimSpace(c.GORM.Driver) == "" {
-			return errors.New("gorm driver is required")
-		}
-		if strings.TrimSpace(c.GORM.DbName) == "" {
-			return errors.New("gorm dbname is required")
-		}
-		if err := c.GORM.Validate(); err != nil {
-			return err
-		}
-	case "mongo", "mongodb":
-		if c.Mongo == nil {
-			return errors.New("mongo config is required")
-		}
-		if strings.TrimSpace(c.Mongo.URI) == "" {
-			return errors.New("mongo uri is required")
-		}
-		if strings.TrimSpace(c.Mongo.Database) == "" {
-			return errors.New("mongo database is required")
-		}
+	case "", "sqlite":
+		return c.SQLite.Validate()
 	default:
 		return fmt.Errorf("unsupported persistence type %q", c.Type)
 	}
-	return nil
 }
 
 func validateRedis(cfg redis.Config) error {
@@ -159,18 +135,8 @@ func LoadGRPC() GRPCConfig {
 		},
 		Persistence: PersistenceConfig{
 			Type: bootstrap.Config().GetString(PersistenceTypeKey),
-			GORM: &gorm.Config{
-				Driver:   bootstrap.Config().GetString(PersistenceGORMDriverKey),
-				Host:     bootstrap.Config().GetString(PersistenceGORMHostKey),
-				Port:     bootstrap.Config().GetInt(PersistenceGORMPortKey),
-				Username: bootstrap.Config().GetString(PersistenceGORMUsernameKey),
-				Password: bootstrap.Config().GetString(PersistenceGORMPasswordKey),
-				DbName:   bootstrap.Config().GetString(PersistenceGORMDBNameKey),
-				SSLMode:  bootstrap.Config().GetString(PersistenceGORMSSLModeKey),
-			},
-			Mongo: &mongo.Config{
-				URI:      bootstrap.Config().GetString(PersistenceMongoURIKey),
-				Database: bootstrap.Config().GetString(PersistenceMongoDatabaseKey),
+			SQLite: sqlite.Config{
+				Path: bootstrap.Config().GetString(PersistenceSQLitePathKey),
 			},
 		},
 		Redis: redis.Config{

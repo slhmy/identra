@@ -26,8 +26,6 @@ func applyConfigDefaults(v *viper.Viper) {
 	v.SetDefault("smtp_mailer.start_tls", true)
 	v.SetDefault("smtp_mailer.auth_enabled", true)
 
-	v.SetDefault("persistence.type", "gorm")
-	v.SetDefault("persistence.gorm.driver", "sqlite")
-	v.SetDefault("persistence.gorm.dbname", "data/users.db")
-	v.SetDefault("persistence.gorm.sslmode", "disable")
+	v.SetDefault("persistence.type", "sqlite")
+	v.SetDefault("persistence.sqlite.path", "data/users.db")
 }

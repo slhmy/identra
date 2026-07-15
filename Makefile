@@ -1,5 +1,6 @@
 GO ?= go
 BUF ?= buf
+SQLC ?= sqlc
 GOLANGCI_LINT_VERSION ?= v2.12.0
 IDENTRA_REDIS_URL ?= localhost:6379
 
@@ -58,9 +59,10 @@ arch-check:
 
 generate: proto-tools
 	PATH="$(PATH_WITH_TOOLS)" $(BUF) generate --clean
+	$(SQLC) generate
 
 generate-check: generate
-	git diff --exit-code gen
+	git diff --exit-code gen internal/store/sqlite/sqlitedb
 
 tools: $(GOLANGCI_LINT) proto-tools
 

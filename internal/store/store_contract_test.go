@@ -9,41 +9,33 @@ import (
 	"time"
 
 	"github.com/slhmy/identra/internal/identra"
-	gormdb "github.com/slhmy/identra/internal/store/gorm"
+	"github.com/slhmy/identra/internal/store/sqlite"
 )
 
 type storeFactory func(t *testing.T) (identra.UserStore, identra.ExternalIdentityStore)
 
-func TestGormStores_UserStoreContract(t *testing.T) {
-	runUserStoreContract(t, newGormStores)
+func TestSQLiteStores_UserStoreContract(t *testing.T) {
+	runUserStoreContract(t, newSQLiteStores)
 }
 
-func TestGormStores_ExternalIdentityStoreContract(t *testing.T) {
-	runExternalIdentityStoreContract(t, newGormStores)
+func TestSQLiteStores_ExternalIdentityStoreContract(t *testing.T) {
+	runExternalIdentityStoreContract(t, newSQLiteStores)
 }
 
-func newGormStores(t *testing.T) (identra.UserStore, identra.ExternalIdentityStore) {
+func newSQLiteStores(t *testing.T) (identra.UserStore, identra.ExternalIdentityStore) {
 	t.Helper()
 
-	db, err := gormdb.NewDB(gormdb.Config{
-		Driver: "sqlite",
-		DbName: filepath.Join(t.TempDir(), "identra-contract.db"),
+	db, err := sqlite.Open(sqlite.Config{
+		Path: filepath.Join(t.TempDir(), "identra-contract.db"),
 	})
 	if err != nil {
-		t.Fatalf("new gorm db: %v", err)
+		t.Fatalf("open sqlite db: %v", err)
 	}
 	t.Cleanup(func() {
-		sqlDB, dbErr := db.DB()
-		if dbErr == nil {
-			_ = sqlDB.Close()
-		}
+		_ = db.Close()
 	})
 
-	if err := AutoMigrateGorm(db); err != nil {
-		t.Fatalf("migrate gorm db: %v", err)
-	}
-
-	return NewGormUserStore(db), NewGormExternalIdentityStore(db)
+	return sqlite.NewStores(db)
 }
 
 func runUserStoreContract(t *testing.T, factory storeFactory) {

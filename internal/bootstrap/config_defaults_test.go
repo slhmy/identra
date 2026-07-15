@@ -23,8 +23,7 @@ func TestInitConfigAppliesDefaults(t *testing.T) {
 		"SMTP_MAILER_START_TLS",
 		"SMTP_MAILER_AUTH_ENABLED",
 		"PERSISTENCE_TYPE",
-		"PERSISTENCE_GORM_DRIVER",
-		"PERSISTENCE_GORM_DBNAME",
+		"PERSISTENCE_SQLITE_PATH",
 	)
 
 	if err := initConfig(t.TempDir()); err != nil {
@@ -73,14 +72,11 @@ func TestInitConfigAppliesDefaults(t *testing.T) {
 	if !config.GetBool("smtp_mailer.auth_enabled") {
 		t.Fatal("expected SMTP authentication to be enabled by default")
 	}
-	if got := config.GetString("persistence.type"); got != "gorm" {
-		t.Fatalf("expected default persistence type gorm, got %q", got)
+	if got := config.GetString("persistence.type"); got != "sqlite" {
+		t.Fatalf("expected default persistence type sqlite, got %q", got)
 	}
-	if got := config.GetString("persistence.gorm.driver"); got != "sqlite" {
-		t.Fatalf("expected default gorm driver sqlite, got %q", got)
-	}
-	if got := config.GetString("persistence.gorm.dbname"); got != "data/users.db" {
-		t.Fatalf("expected default gorm dbname data/users.db, got %q", got)
+	if got := config.GetString("persistence.sqlite.path"); got != "data/users.db" {
+		t.Fatalf("expected default sqlite path data/users.db, got %q", got)
 	}
 }
 

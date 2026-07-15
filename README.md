@@ -9,7 +9,7 @@ authentication process for applications.
 - 🔑 **JWT Token Management**: Industry-standard JWT tokens with JWKS support for secure token validation
 - 🔄 **Token Refresh**: Long-lived refresh tokens for seamless user sessions
 - 🔗 **Account Linking**: Link multiple authentication methods to a single user account
-- 🗄️ **Flexible Storage**: Support for PostgreSQL, MySQL, and SQLite databases
+- 🗄️ **Type-safe Persistence**: SQLite queries generated and checked by sqlc
 - 📧 **Email Integration**: Configurable SMTP for email-based authentication
 - 🚀 **Production Ready**: Docker support, key rotation, and comprehensive security features
 
@@ -61,7 +61,7 @@ docker run --rm -p 6379:6379 redis:7-alpine
 # Run the gRPC service
 docker run --rm -p 50051:50051 \
   -e REDIS_URLS=host.docker.internal:6379 \
-  -e PERSISTENCE_GORM_DBNAME=/app/data/users.db \
+  -e PERSISTENCE_SQLITE_PATH=/app/data/users.db \
   ghcr.io/slhmy/identra-grpc:latest
 
 # Run the HTTP Gateway (in another terminal)
@@ -106,6 +106,9 @@ auth_enabled = true
 local mail catcher such as the Mailpit service in `docker-compose.yml`.
 
 Default local values include `grpc_port = 50051`, `http_port = 8080`, `grpc_endpoint = "localhost:50051"` for the gateway, Redis at `localhost:6379`, SQLite at `data/users.db`, `log.format = "tint"`, and 15-minute access / 7-day refresh tokens. Docker Compose overrides the gateway endpoint, Redis URL, and SQLite path for container networking.
+
+Persistence currently supports SQLite only. SQL lives in `internal/store/sqlite`, and
+`make generate` regenerates the type-safe query package with sqlc.
 
 For browser clients on other origins, set explicit CORS origins:
 
@@ -485,18 +488,17 @@ For production deployments, Identra supports JWT signing key rotation. See [docs
 
 ### Database Setup
 
-Identra supports multiple databases. Example PostgreSQL configuration:
+Identra currently uses SQLite through sqlc:
 
 ```toml
-[persistence.gorm]
-driver = "postgres"
-host = "localhost"
-port = 5432
-dbname = "identra"
-username = "identra_user"
-password = "secure_password"
-sslmode = "require"
+[persistence]
+type = "sqlite"
+
+[persistence.sqlite]
+path = "data/users.db"
 ```
+
+MongoDB, PostgreSQL, and MySQL are not currently supported.
 
 ### Production Deployment
 

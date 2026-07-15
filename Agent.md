@@ -122,7 +122,7 @@ See `CONTRIBUTING.md`:
 - Forward `X-Forwarded-For` or `X-Real-IP` from a trusted proxy so rate limits can combine email and client-source controls.
 - **SMTP** is optional (email sending is disabled when `smtp_mailer.host` is empty).
   The local Compose stack includes Mailpit at `http://localhost:8025` for captured email.
-- **Persistence** defaults to **SQLite via GORM** (`data/users.db`) but MongoDB is supported.
+- **Persistence** uses **SQLite via sqlc** (`data/users.db`). Other databases are not currently supported.
 
 ### Configuration knobs (selected)
 
@@ -144,8 +144,8 @@ Config keys are defined in `internal/config/keys.go`. Built-in local defaults ar
 - **Redis**
   - `redis.urls`, `redis.password`
 - **Persistence**
-  - `persistence.type` (`gorm` or `mongo`)
-  - `persistence.gorm.*`, `persistence.mongo.*`
+  - `persistence.type` (`sqlite`)
+  - `persistence.sqlite.path`
 - **SMTP**
   - `smtp_mailer.*`
 

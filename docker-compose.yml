@@ -20,9 +20,8 @@ services:
     environment:
       GRPC_PORT: "50051"
       REDIS_URLS: redis:6379
-      PERSISTENCE_TYPE: gorm
-      PERSISTENCE_GORM_DRIVER: sqlite
-      PERSISTENCE_GORM_DBNAME: /app/data/users.db
+      PERSISTENCE_TYPE: sqlite
+      PERSISTENCE_SQLITE_PATH: /app/data/users.db
       AUTH_TOKEN_ISSUER: identra
       SMTP_MAILER_HOST: mailpit
       SMTP_MAILER_PORT: "1025"

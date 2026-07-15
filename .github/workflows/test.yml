@@ -44,6 +44,9 @@ jobs:
           go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
+
       - name: Vet
         run: go vet ./...
 
@@ -66,4 +69,5 @@ jobs:
       - name: Check generated files are current
         run: |
           buf generate --clean
-          git diff --exit-code gen
+          sqlc generate
+          git diff --exit-code gen internal/store/sqlite/sqlitedb

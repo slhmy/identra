@@ -22,17 +22,8 @@ const (
 	AuthGithubClientSecretKey       = "auth.github.client_secret"
 
 	// Persistence configuration keys
-	PersistenceTypeKey            = "persistence.type"
-	PersistenceGORMDriverKey      = "persistence.gorm.driver"
-	PersistenceGORMHostKey        = "persistence.gorm.host"
-	PersistenceGORMPortKey        = "persistence.gorm.port"
-	PersistenceGORMUsernameKey    = "persistence.gorm.username"
-	PersistenceGORMPasswordKey    = "persistence.gorm.password"
-	PersistenceGORMDBNameKey      = "persistence.gorm.dbname"
-	PersistenceGORMSSLModeKey     = "persistence.gorm.sslmode"
-	PersistenceMongoURIKey        = "persistence.mongo.uri"
-	PersistenceMongoDatabaseKey   = "persistence.mongo.database"
-	PersistenceMongoCollectionKey = "persistence.mongo.collection"
+	PersistenceTypeKey       = "persistence.type"
+	PersistenceSQLitePathKey = "persistence.sqlite.path"
 
 	// Redis configuration keys
 	RedisUrlsKey     = "redis.urls"

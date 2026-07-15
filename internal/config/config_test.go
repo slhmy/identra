@@ -7,8 +7,7 @@ import (
 
 	"github.com/slhmy/identra/internal/cache/redis"
 	"github.com/slhmy/identra/internal/mail/smtp"
-	"github.com/slhmy/identra/internal/store/gorm"
-	"github.com/slhmy/identra/internal/store/mongo"
+	"github.com/slhmy/identra/internal/store/sqlite"
 )
 
 func TestGRPCConfigValidateAcceptsLocalDefaults(t *testing.T) {
@@ -18,11 +17,8 @@ func TestGRPCConfigValidateAcceptsLocalDefaults(t *testing.T) {
 			Urls: []string{"localhost:6379"},
 		},
 		Persistence: PersistenceConfig{
-			Type: "gorm",
-			GORM: &gorm.Config{
-				Driver: "sqlite",
-				DbName: "data/users.db",
-			},
+			Type:   "sqlite",
+			SQLite: sqlite.Config{Path: "data/users.db"},
 		},
 		Auth: AuthConfig{
 			Token: TokenConfig{
@@ -82,18 +78,18 @@ func TestGRPCConfigValidateAcceptsLocalSMTPWithoutTLSOrAuth(t *testing.T) {
 	}
 }
 
-func TestPersistenceConfigValidateRejectsInvalidMongo(t *testing.T) {
+func TestPersistenceConfigValidateRejectsMongo(t *testing.T) {
 	cfg := PersistenceConfig{
-		Type:  "mongo",
-		Mongo: &mongo.Config{URI: "mongodb://localhost:27017"},
+		Type:   "mongo",
+		SQLite: sqlite.Config{Path: "data/users.db"},
 	}
 
 	err := cfg.Validate()
 	if err == nil {
-		t.Fatal("expected missing mongo database to fail")
+		t.Fatal("expected unsupported mongo persistence to fail")
 	}
-	if !strings.Contains(err.Error(), "mongo database") {
-		t.Fatalf("expected mongo database error, got %q", err)
+	if !strings.Contains(err.Error(), "unsupported persistence type") {
+		t.Fatalf("expected unsupported persistence error, got %q", err)
 	}
 }
 
@@ -123,11 +119,8 @@ func validGRPCConfig() GRPCConfig {
 			Urls: []string{"localhost:6379"},
 		},
 		Persistence: PersistenceConfig{
-			Type: "gorm",
-			GORM: &gorm.Config{
-				Driver: "sqlite",
-				DbName: "data/users.db",
-			},
+			Type:   "sqlite",
+			SQLite: sqlite.Config{Path: "data/users.db"},
 		},
 		Auth: AuthConfig{
 			Token: TokenConfig{
