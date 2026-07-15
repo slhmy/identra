@@ -15,7 +15,18 @@ make dev
 
 The Compose stack exposes the gRPC service on `localhost:50051`, the HTTP gateway on
 `http://localhost:8080`, and Redis on `localhost:6379`. The gRPC container stores local
-SQLite data at `/app/data/users.db` on the `identra-data` Docker volume.
+SQLite data at `/app/data/users.db` on the `identra-data` Docker volume. Mailpit captures
+local email on SMTP port `1025`; inspect messages at `http://localhost:8025`.
+
+For host-side Go debugging without rebuilding images after every edit:
+
+```sh
+make dev-infra
+make run-grpc       # terminal 1
+make run-gateway    # terminal 2
+```
+
+Stop Redis and Mailpit with `make dev-down`.
 
 ### Local Verification
 

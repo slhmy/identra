@@ -20,6 +20,8 @@ func TestInitConfigAppliesDefaults(t *testing.T) {
 		"AUTH_REFRESH_TOKEN_EXPIRATION",
 		"AUTH_TOKEN_ISSUER",
 		"REDIS_URLS",
+		"SMTP_MAILER_START_TLS",
+		"SMTP_MAILER_AUTH_ENABLED",
 		"PERSISTENCE_TYPE",
 		"PERSISTENCE_GORM_DRIVER",
 		"PERSISTENCE_GORM_DBNAME",
@@ -64,6 +66,12 @@ func TestInitConfigAppliesDefaults(t *testing.T) {
 	}
 	if got := config.GetStringSlice("redis.urls"); len(got) != 1 || got[0] != "localhost:6379" {
 		t.Fatalf("expected default redis urls [localhost:6379], got %#v", got)
+	}
+	if !config.GetBool("smtp_mailer.start_tls") {
+		t.Fatal("expected SMTP STARTTLS to be enabled by default")
+	}
+	if !config.GetBool("smtp_mailer.auth_enabled") {
+		t.Fatal("expected SMTP authentication to be enabled by default")
 	}
 	if got := config.GetString("persistence.type"); got != "gorm" {
 		t.Fatalf("expected default persistence type gorm, got %q", got)

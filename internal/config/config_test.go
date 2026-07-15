@@ -53,7 +53,12 @@ func TestGRPCConfigValidateReportsConfigArea(t *testing.T) {
 
 func TestGRPCConfigValidateRejectsInvalidSMTP(t *testing.T) {
 	cfg := validGRPCConfig()
-	cfg.SmtpMailer = smtp.Config{Host: "smtp.example.com", Port: 587}
+	cfg.SmtpMailer = smtp.Config{
+		Host:        "smtp.example.com",
+		Port:        587,
+		FromEmail:   "noreply@example.com",
+		AuthEnabled: true,
+	}
 
 	err := cfg.Validate()
 	if err == nil {
@@ -61,6 +66,19 @@ func TestGRPCConfigValidateRejectsInvalidSMTP(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "smtp mailer config") {
 		t.Fatalf("expected error to identify SMTP config area, got %q", err)
+	}
+}
+
+func TestGRPCConfigValidateAcceptsLocalSMTPWithoutTLSOrAuth(t *testing.T) {
+	cfg := validGRPCConfig()
+	cfg.SmtpMailer = smtp.Config{
+		Host:      "localhost",
+		Port:      1025,
+		FromEmail: "noreply@identra.local",
+	}
+
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("expected local SMTP config to be valid: %v", err)
 	}
 }
 

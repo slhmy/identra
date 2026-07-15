@@ -121,6 +121,7 @@ See `CONTRIBUTING.md`:
 - **Redis** is required for email-code login (verification codes are stored in Redis).
 - Forward `X-Forwarded-For` or `X-Real-IP` from a trusted proxy so rate limits can combine email and client-source controls.
 - **SMTP** is optional (email sending is disabled when `smtp_mailer.host` is empty).
+  The local Compose stack includes Mailpit at `http://localhost:8025` for captured email.
 - **Persistence** defaults to **SQLite via GORM** (`data/users.db`) but MongoDB is supported.
 
 ### Configuration knobs (selected)
@@ -147,6 +148,10 @@ Config keys are defined in `internal/config/keys.go`. Built-in local defaults ar
   - `persistence.gorm.*`, `persistence.mongo.*`
 - **SMTP**
   - `smtp_mailer.*`
+
+For host-side iteration, run `make dev-infra`, `make run-grpc`, and
+`make run-gateway`. The gRPC target configures Mailpit without TLS or authentication;
+production SMTP keeps both enabled by default.
 
 ### OAuth state storage
 

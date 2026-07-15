@@ -30,6 +30,20 @@ The local stack uses these defaults:
 - Gateway upstream: `identra-grpc:50051`
 - Redis: `redis:6379` inside Compose, exposed locally at `localhost:6379`
 - SQLite data: `/app/data/users.db` in the gRPC container
+- Captured email: `http://localhost:8025` (Mailpit web UI)
+
+For a faster edit-and-run loop, keep only Redis and Mailpit in Docker and run the Go
+services on the host:
+
+```bash
+make dev-infra
+make run-grpc       # terminal 1
+make run-gateway    # terminal 2
+```
+
+`make run-grpc` points SMTP at the local Mailpit instance. Verification-code emails
+are captured locally and never delivered to real recipients. Stop the infrastructure
+with `make dev-down`.
 
 The gateway health endpoints are available at:
 
@@ -84,7 +98,12 @@ port = 587
 username = "your-email@example.com"
 password = "your-password"
 from_email = "noreply@example.com"
+start_tls = true
+auth_enabled = true
 ```
+
+`start_tls` and `auth_enabled` default to `true`. Disable them only for a trusted
+local mail catcher such as the Mailpit service in `docker-compose.yml`.
 
 Default local values include `grpc_port = 50051`, `http_port = 8080`, `grpc_endpoint = "localhost:50051"` for the gateway, Redis at `localhost:6379`, SQLite at `data/users.db`, `log.format = "tint"`, and 15-minute access / 7-day refresh tokens. Docker Compose overrides the gateway endpoint, Redis URL, and SQLite path for container networking.
 

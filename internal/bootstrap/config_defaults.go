@@ -23,6 +23,8 @@ func applyConfigDefaults(v *viper.Viper) {
 	v.SetDefault("auth.oauth.fetch_email_if_missing", false)
 
 	v.SetDefault("redis.urls", []string{"localhost:6379"})
+	v.SetDefault("smtp_mailer.start_tls", true)
+	v.SetDefault("smtp_mailer.auth_enabled", true)
 
 	v.SetDefault("persistence.type", "gorm")
 	v.SetDefault("persistence.gorm.driver", "sqlite")

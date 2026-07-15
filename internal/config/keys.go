@@ -39,10 +39,12 @@ const (
 	RedisPasswordKey = "redis.password"
 
 	// Mailer configuration keys
-	SmtpMailerHostKey      = "smtp_mailer.host"
-	SmtpMailerPortKey      = "smtp_mailer.port"
-	SmtpMailerUsernameKey  = "smtp_mailer.username"
-	SmtpMailerPasswordKey  = "smtp_mailer.password"
-	SmtpMailerFromEmailKey = "smtp_mailer.from_email"
-	SmtpMailerFromNameKey  = "smtp_mailer.from_name"
+	SmtpMailerHostKey        = "smtp_mailer.host"
+	SmtpMailerPortKey        = "smtp_mailer.port"
+	SmtpMailerUsernameKey    = "smtp_mailer.username"
+	SmtpMailerPasswordKey    = "smtp_mailer.password"
+	SmtpMailerFromEmailKey   = "smtp_mailer.from_email"
+	SmtpMailerFromNameKey    = "smtp_mailer.from_name"
+	SmtpMailerStartTLSKey    = "smtp_mailer.start_tls"
+	SmtpMailerAuthEnabledKey = "smtp_mailer.auth_enabled"
 )

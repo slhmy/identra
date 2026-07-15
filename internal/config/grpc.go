@@ -133,9 +133,9 @@ func validateMailer(cfg smtp.Config) error {
 		return errors.New("smtp port is required")
 	case cfg.Port < 0 || cfg.Port > 65535:
 		return errors.New("smtp port must be between 1 and 65535")
-	case strings.TrimSpace(cfg.Username) == "":
+	case cfg.AuthEnabled && strings.TrimSpace(cfg.Username) == "":
 		return errors.New("smtp username is required")
-	case strings.TrimSpace(cfg.Password) == "":
+	case cfg.AuthEnabled && strings.TrimSpace(cfg.Password) == "":
 		return errors.New("smtp password is required")
 	case strings.TrimSpace(cfg.FromEmail) == "":
 		return errors.New("smtp from email is required")
@@ -148,12 +148,14 @@ func LoadGRPC() GRPCConfig {
 	return GRPCConfig{
 		GRPCPort: bootstrap.Config().GetUint(GRPCPortKey),
 		SmtpMailer: smtp.Config{
-			Host:      bootstrap.Config().GetString(SmtpMailerHostKey),
-			Port:      bootstrap.Config().GetInt(SmtpMailerPortKey),
-			Username:  bootstrap.Config().GetString(SmtpMailerUsernameKey),
-			Password:  bootstrap.Config().GetString(SmtpMailerPasswordKey),
-			FromEmail: bootstrap.Config().GetString(SmtpMailerFromEmailKey),
-			FromName:  bootstrap.Config().GetString(SmtpMailerFromNameKey),
+			Host:        bootstrap.Config().GetString(SmtpMailerHostKey),
+			Port:        bootstrap.Config().GetInt(SmtpMailerPortKey),
+			Username:    bootstrap.Config().GetString(SmtpMailerUsernameKey),
+			Password:    bootstrap.Config().GetString(SmtpMailerPasswordKey),
+			FromEmail:   bootstrap.Config().GetString(SmtpMailerFromEmailKey),
+			FromName:    bootstrap.Config().GetString(SmtpMailerFromNameKey),
+			StartTLS:    bootstrap.Config().GetBool(SmtpMailerStartTLSKey),
+			AuthEnabled: bootstrap.Config().GetBool(SmtpMailerAuthEnabledKey),
 		},
 		Persistence: PersistenceConfig{
 			Type: bootstrap.Config().GetString(PersistenceTypeKey),

@@ -13,12 +13,30 @@ PROTO_TOOLS := \
 	github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
 	github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 
-.PHONY: dev verify test test-integration vet lint proto-lint arch-check generate generate-check tools proto-tools clean-tools
+.PHONY: dev dev-infra dev-down run-grpc run-gateway verify test test-integration vet lint proto-lint arch-check generate generate-check tools proto-tools clean-tools
 
 verify: vet test lint arch-check generate-check
 
 dev:
 	docker compose up --build
+
+dev-infra:
+	docker compose up -d redis mailpit
+
+dev-down:
+	docker compose down
+
+run-grpc:
+	SMTP_MAILER_HOST=localhost \
+	SMTP_MAILER_PORT=1025 \
+	SMTP_MAILER_FROM_EMAIL=noreply@identra.local \
+	SMTP_MAILER_FROM_NAME="Identra Local" \
+	SMTP_MAILER_START_TLS=false \
+	SMTP_MAILER_AUTH_ENABLED=false \
+	$(GO) run ./cmd/identra-grpc
+
+run-gateway:
+	$(GO) run ./cmd/identra-gateway
 
 test:
 	$(GO) test ./...

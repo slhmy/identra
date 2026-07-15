@@ -10,12 +10,14 @@ import (
 
 // Config holds the SMTP server configuration.
 type Config struct {
-	Host      string
-	Port      int
-	Username  string
-	Password  string
-	FromEmail string
-	FromName  string
+	Host        string
+	Port        int
+	Username    string
+	Password    string
+	FromEmail   string
+	FromName    string
+	StartTLS    bool
+	AuthEnabled bool
 }
 
 // Mailer handles sending emails via SMTP.
@@ -58,17 +60,21 @@ func (m *Mailer) SendEmail(msg Message) error {
 		_ = client.Close()
 	}()
 
-	tlsConfig := &tls.Config{
-		ServerName: m.config.Host,
-		MinVersion: tls.VersionTLS12,
-	}
-	if err = client.StartTLS(tlsConfig); err != nil {
-		return err
+	if m.config.StartTLS {
+		tlsConfig := &tls.Config{
+			ServerName: m.config.Host,
+			MinVersion: tls.VersionTLS12,
+		}
+		if err = client.StartTLS(tlsConfig); err != nil {
+			return err
+		}
 	}
 
-	auth := smtp.PlainAuth("", m.config.Username, m.config.Password, m.config.Host)
-	if err = client.Auth(auth); err != nil {
-		return err
+	if m.config.AuthEnabled {
+		auth := smtp.PlainAuth("", m.config.Username, m.config.Password, m.config.Host)
+		if err = client.Auth(auth); err != nil {
+			return err
+		}
 	}
 
 	if err = client.Mail(m.config.FromEmail); err != nil {
