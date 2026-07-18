@@ -24,17 +24,17 @@ jobs:
           --health-retries 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
 
-      - name: Set up Buf
-        uses: bufbuild/buf-setup-action@v1
+      - name: Install Buf
+        run: go install github.com/bufbuild/buf/cmd/buf@v1.50.0
 
       - name: Install protobuf generators
         run: |
