@@ -41,3 +41,19 @@ type RefreshTokenRevocationStore interface {
 	Revoke(ctx context.Context, tokenID string, expiresAt time.Time) error
 	IsRevoked(ctx context.Context, tokenID string) (bool, error)
 }
+
+type AuditEvent struct {
+	ID           string
+	OccurredAt   time.Time
+	ActorType    string
+	ActorID      string
+	Action       string
+	ResourceType string
+	ResourceID   string
+	Metadata     map[string]string
+}
+
+type AuditStore interface {
+	Record(ctx context.Context, event AuditEvent) error
+	List(ctx context.Context, offset, limit int) ([]AuditEvent, error)
+}

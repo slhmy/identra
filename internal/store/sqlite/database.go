@@ -3,18 +3,23 @@ package sqlite
 
 import (
 	"database/sql"
-	_ "embed"
+	"embed"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 
 	_ "modernc.org/sqlite"
 )
 
-//go:embed schema.sql
-var schemaSQL string
+// CurrentSchemaVersion is the newest database schema understood by this build.
+const CurrentSchemaVersion = 3
+
+//go:embed migrations/*.sql
+var migrationFiles embed.FS
 
 type Config struct {
 	Path string
@@ -51,10 +56,70 @@ func Open(cfg Config) (*sql.DB, error) {
 		_ = db.Close()
 		return nil, fmt.Errorf("ping sqlite database: %w", err)
 	}
-	if _, err := db.Exec(schemaSQL); err != nil {
+	if err := applyMigrations(db); err != nil {
 		_ = db.Close()
-		return nil, fmt.Errorf("initialize sqlite schema: %w", err)
+		return nil, err
 	}
 
 	return db, nil
+}
+
+func applyMigrations(db *sql.DB) error {
+	var currentVersion int
+	if err := db.QueryRow("PRAGMA user_version").Scan(&currentVersion); err != nil {
+		return fmt.Errorf("read sqlite schema version: %w", err)
+	}
+	if currentVersion > CurrentSchemaVersion {
+		return fmt.Errorf("sqlite schema version %d is newer than supported version %d", currentVersion, CurrentSchemaVersion)
+	}
+
+	entries, err := migrationFiles.ReadDir("migrations")
+	if err != nil {
+		return fmt.Errorf("read embedded sqlite migrations: %w", err)
+	}
+	sort.Slice(entries, func(i, j int) bool { return entries[i].Name() < entries[j].Name() })
+
+	lastVersion := 0
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
+			continue
+		}
+		prefix, _, ok := strings.Cut(entry.Name(), "_")
+		if !ok {
+			return fmt.Errorf("invalid sqlite migration filename %q", entry.Name())
+		}
+		version, err := strconv.Atoi(prefix)
+		if err != nil || version != lastVersion+1 {
+			return fmt.Errorf("sqlite migration %q is not the next sequential version after %d", entry.Name(), lastVersion)
+		}
+		lastVersion = version
+		if version <= currentVersion {
+			continue
+		}
+
+		script, err := migrationFiles.ReadFile("migrations/" + entry.Name())
+		if err != nil {
+			return fmt.Errorf("read sqlite migration %s: %w", entry.Name(), err)
+		}
+		tx, err := db.Begin()
+		if err != nil {
+			return fmt.Errorf("begin sqlite migration %s: %w", entry.Name(), err)
+		}
+		if _, err := tx.Exec(string(script)); err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("apply sqlite migration %s: %w", entry.Name(), err)
+		}
+		if _, err := tx.Exec(fmt.Sprintf("PRAGMA user_version = %d", version)); err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("record sqlite migration %s: %w", entry.Name(), err)
+		}
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("commit sqlite migration %s: %w", entry.Name(), err)
+		}
+	}
+
+	if lastVersion != CurrentSchemaVersion {
+		return fmt.Errorf("embedded sqlite schema version is %d, expected %d", lastVersion, CurrentSchemaVersion)
+	}
+	return nil
 }

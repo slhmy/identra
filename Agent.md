@@ -9,6 +9,8 @@ Identra exposes a gRPC-only authentication and user-management API on `identra.v
 - `UserService`: current-user data and OAuth account linking
 - `KeyService`: typed RSA public keys for JWT verification
 - `ServiceAccountService`: Service Token exchange and scoped machine-identity management
+- `AuditService`: management audit history (requires `identra.audit.read`)
+- `SystemService`: public build, schema, and capability discovery
 
 Use server reflection or the proto files under `proto/identra/v1` as the API reference:
 

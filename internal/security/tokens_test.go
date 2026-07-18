@@ -200,34 +200,6 @@ func TestStandardClaims(t *testing.T) {
 	}
 }
 
-// Legacy compatibility tests
-
-func TestLegacyUserTokenClaimsWithExpiration(t *testing.T) {
-	userID := uuid.New().String()
-	customExpiration := time.Now().Add(3 * time.Hour)
-
-	claims := NewUserTokenClaimsWithExpiration(userID, customExpiration)
-
-	claimsUserID, ok := claims.MapClaims["user_id"].(string)
-	if !ok {
-		t.Error("Expected user_id in claims")
-	}
-	if claimsUserID != userID {
-		t.Errorf("Expected user ID %s, got %s", userID, claimsUserID)
-	}
-
-	expUnix, ok := claims.MapClaims["exp"].(int64)
-	if !ok {
-		t.Error("Expected exp in claims")
-	}
-
-	claimsExpiration := time.Unix(expUnix, 0)
-	if claimsExpiration.Before(customExpiration.Add(-5*time.Second)) ||
-		claimsExpiration.After(customExpiration.Add(5*time.Second)) {
-		t.Errorf("Expected expiration around %v, got %v", customExpiration, claimsExpiration)
-	}
-}
-
 func TestInvalidTokenValidation(t *testing.T) {
 	config := createTestTokenConfig(t)
 

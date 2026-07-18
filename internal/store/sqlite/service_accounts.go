@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/slhmy/identra/internal/identra"
 	"github.com/slhmy/identra/internal/serviceaccount"
 )
 
@@ -200,6 +202,17 @@ INSERT INTO system_state (key, value, updated_at) VALUES (?, ?, ?)
 ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`, bootstrapCompletedKey, record.Account.ID, record.Account.CreatedAt)
 	if err != nil {
 		return serviceaccount.Account{}, false, fmt.Errorf("write bootstrap state: %w", err)
+	}
+	metadata, err := json.Marshal(map[string]string{"name": record.Account.Name})
+	if err != nil {
+		return serviceaccount.Account{}, false, fmt.Errorf("encode bootstrap audit metadata: %w", err)
+	}
+	_, err = tx.ExecContext(ctx, `
+INSERT INTO audit_events
+  (id, occurred_at, actor_type, actor_id, action, resource_type, resource_id, metadata)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, uuid.NewString(), record.Account.CreatedAt, identra.AuditActorSystem, "bootstrap", "service_account.bootstrap", "service_account", record.Account.ID, string(metadata))
+	if err != nil {
+		return serviceaccount.Account{}, false, fmt.Errorf("record bootstrap audit event: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
 		return serviceaccount.Account{}, false, mapServiceAccountError(err)

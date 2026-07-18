@@ -21,6 +21,7 @@ func TestGRPCConfigValidateAcceptsLocalDefaults(t *testing.T) {
 			SQLite: sqlite.Config{Path: "data/users.db"},
 		},
 		Auth: AuthConfig{
+			RSAPrivateKeyFile: "data/signing-key.pem",
 			Token: TokenConfig{
 				Issuer:                 "identra",
 				AccessTokenExpiration:  15 * time.Minute,
@@ -105,6 +106,7 @@ func validGRPCConfig() GRPCConfig {
 			SQLite: sqlite.Config{Path: "data/users.db"},
 		},
 		Auth: AuthConfig{
+			RSAPrivateKeyFile: "data/signing-key.pem",
 			Token: TokenConfig{
 				Issuer:                 "identra",
 				AccessTokenExpiration:  15 * time.Minute,

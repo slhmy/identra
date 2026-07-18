@@ -16,6 +16,7 @@ type redisDependencies struct {
 	loginRateLimiter        identra.RateLimiter
 	sendCodeRateLimiter     identra.RateLimiter
 	refreshTokenRevocations identra.RefreshTokenRevocationStore
+	serviceTokenRateLimiter identra.RateLimiter
 }
 
 func buildRedisDependencies(redisCfg redis.Config, oauthCfg config.OAuthConfig) (redisDependencies, error) {
@@ -63,11 +64,22 @@ func buildRedisDependencies(redisCfg redis.Config, oauthCfg config.OAuthConfig) 
 		return redisDependencies{}, fmt.Errorf("failed to initialize refresh token revocation store: %w", err)
 	}
 
+	serviceTokenLimiter, err := cache.NewRedisRateLimiter(
+		rdb,
+		"identra:rl:service_token:",
+		identra.DefaultServiceTokenMaxAttempts,
+		identra.DefaultServiceTokenWindow,
+	)
+	if err != nil {
+		return redisDependencies{}, fmt.Errorf("failed to initialize service-token rate limiter: %w", err)
+	}
+
 	return redisDependencies{
 		emailCodeStore:          emailStore,
 		oauthStateStore:         oauthStateStoreAdapter{store: oauthStore},
 		loginRateLimiter:        loginLimiter,
 		sendCodeRateLimiter:     sendCodeLimiter,
 		refreshTokenRevocations: refreshRevocations,
+		serviceTokenRateLimiter: serviceTokenLimiter,
 	}, nil
 }

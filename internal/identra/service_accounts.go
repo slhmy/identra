@@ -16,19 +16,46 @@ import (
 )
 
 const (
-	ScopeAdmin                 = "identra.admin"
-	ScopeServiceAccountsRead   = "identra.service_accounts.read"
-	ScopeServiceAccountsManage = "identra.service_accounts.manage"
+	ScopeAdmin                     = "identra.admin"
+	ScopeServiceAccountsRead       = "identra.service_accounts.read"
+	ScopeServiceAccountsManage     = "identra.service_accounts.manage"
+	DefaultServiceTokenMaxAttempts = 10
+	DefaultServiceTokenWindow      = 15 * time.Minute
 )
 
 func (s *Service) ExchangeServiceToken(ctx context.Context, req *identra_v1_pb.ExchangeServiceTokenRequest) (*identra_v1_pb.ExchangeServiceTokenResponse, error) {
+	clientID := strings.TrimSpace(req.GetClientId())
+	rateLimitKey := "client_id:" + clientID
+	if clientID == "" {
+		rateLimitKey = "client_id:missing"
+	}
+	if s.serviceTokenRateLimiter != nil {
+		allowed, limiterErr := s.serviceTokenRateLimiter.IsAllowed(ctx, rateLimitKey)
+		if limiterErr != nil {
+			slog.ErrorContext(ctx, "failed to check service-token rate limit", "error", limiterErr)
+			return nil, status.Error(codes.Internal, "failed to check service-token rate limit")
+		}
+		if !allowed {
+			return nil, status.Error(codes.ResourceExhausted, "too many service-token attempts")
+		}
+	}
 	account, err := serviceaccount.Authenticate(ctx, s.serviceAccountStore, req.GetClientId(), req.GetClientSecret())
 	if err != nil {
 		if errors.Is(err, serviceaccount.ErrInvalidCredential) || errors.Is(err, serviceaccount.ErrNotFound) {
+			if s.serviceTokenRateLimiter != nil {
+				if recordErr := s.serviceTokenRateLimiter.Record(ctx, rateLimitKey); recordErr != nil {
+					slog.ErrorContext(ctx, "failed to record service-token rate limit", "error", recordErr)
+				}
+			}
 			return nil, status.Error(codes.Unauthenticated, "invalid service-account credential")
 		}
 		slog.ErrorContext(ctx, "failed to authenticate service account", "error", err)
 		return nil, status.Error(codes.Internal, "failed to authenticate service account")
+	}
+	if s.serviceTokenRateLimiter != nil {
+		if resetErr := s.serviceTokenRateLimiter.Reset(ctx, rateLimitKey); resetErr != nil {
+			slog.ErrorContext(ctx, "failed to reset service-token rate limit", "error", resetErr)
+		}
 	}
 	token, err := security.NewServiceToken(account.ID, account.Scopes, s.tokenCfg)
 	if err != nil {
@@ -39,7 +66,8 @@ func (s *Service) ExchangeServiceToken(ctx context.Context, req *identra_v1_pb.E
 }
 
 func (s *Service) CreateServiceAccount(ctx context.Context, req *identra_v1_pb.CreateServiceAccountRequest) (*identra_v1_pb.CreateServiceAccountResponse, error) {
-	if _, err := s.authorizeServiceAccount(ctx, ScopeServiceAccountsManage); err != nil {
+	actor, err := s.authorizeServiceAccount(ctx, ScopeServiceAccountsManage)
+	if err != nil {
 		return nil, err
 	}
 	result, err := serviceaccount.Create(ctx, s.serviceAccountStore, req.GetName(), req.GetScopes())
@@ -54,6 +82,7 @@ func (s *Service) CreateServiceAccount(ctx context.Context, req *identra_v1_pb.C
 			return nil, status.Error(codes.Internal, "failed to create service account")
 		}
 	}
+	s.recordManagementAudit(ctx, actor, "service_account.create", "service_account", result.ID)
 	return &identra_v1_pb.CreateServiceAccountResponse{
 		ServiceAccount: serviceAccountProto(result.Account),
 		Credential: &identra_v1_pb.ServiceAccountCredential{
@@ -98,11 +127,13 @@ func (s *Service) DisableServiceAccount(ctx context.Context, req *identra_v1_pb.
 		slog.ErrorContext(ctx, "failed to disable service account", "error", err, "client_id", clientID)
 		return nil, status.Error(codes.Internal, "failed to disable service account")
 	}
+	s.recordManagementAudit(ctx, actor, "service_account.disable", "service_account", account.ID)
 	return &identra_v1_pb.DisableServiceAccountResponse{ServiceAccount: serviceAccountProto(account)}, nil
 }
 
 func (s *Service) RotateServiceAccountSecret(ctx context.Context, req *identra_v1_pb.RotateServiceAccountSecretRequest) (*identra_v1_pb.RotateServiceAccountSecretResponse, error) {
-	if _, err := s.authorizeServiceAccount(ctx, ScopeServiceAccountsManage); err != nil {
+	actor, err := s.authorizeServiceAccount(ctx, ScopeServiceAccountsManage)
+	if err != nil {
 		return nil, err
 	}
 	clientID := strings.TrimSpace(req.GetClientId())
@@ -117,6 +148,7 @@ func (s *Service) RotateServiceAccountSecret(ctx context.Context, req *identra_v
 		slog.ErrorContext(ctx, "failed to rotate service-account secret", "error", err, "client_id", clientID)
 		return nil, status.Error(codes.Internal, "failed to rotate service-account secret")
 	}
+	s.recordManagementAudit(ctx, actor, "service_account.rotate_secret", "service_account", clientID)
 	return &identra_v1_pb.RotateServiceAccountSecretResponse{
 		Credential: &identra_v1_pb.ServiceAccountCredential{ClientId: clientID, ClientSecret: secret},
 	}, nil

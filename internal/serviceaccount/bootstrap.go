@@ -63,10 +63,12 @@ type Store interface {
 
 // BootstrapRequest controls first-service-account creation.
 type BootstrapRequest struct {
-	Name        string
-	Scopes      []string
-	IfNotExists bool
-	Force       bool
+	Name         string
+	Scopes       []string
+	ClientID     string
+	ClientSecret string
+	IfNotExists  bool
+	Force        bool
 }
 
 // BootstrapResult contains the one-time credential returned to the operator.
@@ -78,7 +80,7 @@ type BootstrapResult struct {
 
 // Bootstrap creates a service account and a single credential atomically.
 func Bootstrap(ctx context.Context, store BootstrapStore, req BootstrapRequest) (BootstrapResult, error) {
-	record, clientSecret, err := newRecord(req.Name, req.Scopes)
+	record, clientSecret, err := newBootstrapRecord(req)
 	if err != nil {
 		return BootstrapResult{}, err
 	}
@@ -91,6 +93,47 @@ func Bootstrap(ctx context.Context, store BootstrapStore, req BootstrapRequest) 
 		result.ClientSecret = clientSecret
 	}
 	return result, nil
+}
+
+func newBootstrapRecord(req BootstrapRequest) (BootstrapRecord, string, error) {
+	clientID := strings.TrimSpace(req.ClientID)
+	clientSecret := strings.TrimSpace(req.ClientSecret)
+	if clientID == "" && clientSecret == "" {
+		return newRecord(req.Name, req.Scopes)
+	}
+	if clientID == "" || clientSecret == "" {
+		return BootstrapRecord{}, "", errors.New("bootstrap client ID and client secret must be provided together")
+	}
+	if !scopePattern.MatchString(clientID) {
+		return BootstrapRecord{}, "", errors.New("invalid bootstrap client ID")
+	}
+	if len(clientSecret) < 32 {
+		return BootstrapRecord{}, "", errors.New("bootstrap client secret must contain at least 32 characters")
+	}
+	if len(clientSecret) > 512 {
+		return BootstrapRecord{}, "", errors.New("bootstrap client secret must not exceed 512 characters")
+	}
+	name := strings.TrimSpace(req.Name)
+	if name == "" {
+		return BootstrapRecord{}, "", errors.New("service account name is required")
+	}
+	if len(name) > 128 {
+		return BootstrapRecord{}, "", errors.New("service account name must not exceed 128 characters")
+	}
+	scopes, err := normalizeScopes(req.Scopes)
+	if err != nil {
+		return BootstrapRecord{}, "", err
+	}
+	credentialID, err := randomValue(credentialIDPrefix, 18)
+	if err != nil {
+		return BootstrapRecord{}, "", fmt.Errorf("generate credential ID: %w", err)
+	}
+	now := time.Now().UTC()
+	return BootstrapRecord{
+		Account:      Account{ID: clientID, Name: name, Scopes: scopes, CreatedAt: now},
+		CredentialID: credentialID,
+		SecretHash:   secretHash(clientSecret),
+	}, clientSecret, nil
 }
 
 // Create adds a service account and returns its one-time credential.

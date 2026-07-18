@@ -9,6 +9,17 @@ import (
 	"time"
 )
 
+type AuditEvent struct {
+	ID           string    `json:"id"`
+	OccurredAt   time.Time `json:"occurred_at"`
+	ActorType    string    `json:"actor_type"`
+	ActorID      string    `json:"actor_id"`
+	Action       string    `json:"action"`
+	ResourceType string    `json:"resource_type"`
+	ResourceID   string    `json:"resource_id"`
+	Metadata     string    `json:"metadata"`
+}
+
 type ExternalIdentity struct {
 	ID             string       `json:"id"`
 	UserID         string       `json:"user_id"`

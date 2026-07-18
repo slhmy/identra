@@ -13,7 +13,11 @@ func applyConfigDefaults(v *viper.Viper) {
 	v.SetDefault("auth.refresh_token_expiration", "168h")
 	v.SetDefault("auth.service_token_expiration", "15m")
 	v.SetDefault("auth.token_issuer", "identra")
+	v.SetDefault("auth.rsa_private_key_file", "data/signing-key.pem")
 	v.SetDefault("auth.oauth.fetch_email_if_missing", false)
+	v.SetDefault("bootstrap.service_account.enabled", false)
+	v.SetDefault("bootstrap.service_account.name", "platform-admin")
+	v.SetDefault("bootstrap.service_account.scopes", []string{"identra.admin"})
 
 	v.SetDefault("redis.urls", []string{"localhost:6379"})
 	v.SetDefault("smtp_mailer.start_tls", true)

@@ -18,12 +18,22 @@ type GRPCConfig struct {
 	SmtpMailer  smtp.Config
 	Persistence PersistenceConfig
 	Auth        AuthConfig
+	Bootstrap   BootstrapConfig
+}
+
+type BootstrapConfig struct {
+	Enabled      bool
+	Name         string
+	ClientID     string
+	ClientSecret string
+	Scopes       []string
 }
 
 type AuthConfig struct {
-	RSAPrivateKey string
-	OAuth         OAuthConfig
-	Token         TokenConfig
+	RSAPrivateKey     string
+	RSAPrivateKeyFile string
+	OAuth             OAuthConfig
+	Token             TokenConfig
 }
 
 type OAuthConfig struct {
@@ -61,10 +71,35 @@ func (c GRPCConfig) Validate() error {
 	if err := c.Auth.Validate(); err != nil {
 		return fmt.Errorf("auth config: %w", err)
 	}
+	if err := c.Bootstrap.Validate(); err != nil {
+		return fmt.Errorf("bootstrap config: %w", err)
+	}
+	return nil
+}
+
+func (c BootstrapConfig) Validate() error {
+	if !c.Enabled {
+		return nil
+	}
+	if strings.TrimSpace(c.Name) == "" {
+		return errors.New("service account name is required")
+	}
+	if strings.TrimSpace(c.ClientID) == "" {
+		return errors.New("service account client ID is required")
+	}
+	if len(strings.TrimSpace(c.ClientSecret)) < 32 {
+		return errors.New("service account client secret must contain at least 32 characters")
+	}
+	if len(c.Scopes) == 0 {
+		return errors.New("at least one service account scope is required")
+	}
 	return nil
 }
 
 func (c AuthConfig) Validate() error {
+	if strings.TrimSpace(c.RSAPrivateKey) == "" && strings.TrimSpace(c.RSAPrivateKeyFile) == "" {
+		return errors.New("RSA private key or RSA private key file is required")
+	}
 	if c.OAuth.StateExpirationDuration < 0 {
 		return errors.New("oauth state expiration cannot be negative")
 	}
@@ -143,7 +178,8 @@ func LoadGRPC() GRPCConfig {
 			Password: bootstrap.Config().GetString(RedisPasswordKey),
 		},
 		Auth: AuthConfig{
-			RSAPrivateKey: bootstrap.Config().GetString(AuthRSAPrivateKeyKey),
+			RSAPrivateKey:     bootstrap.Config().GetString(AuthRSAPrivateKeyKey),
+			RSAPrivateKeyFile: bootstrap.Config().GetString(AuthRSAPrivateKeyFileKey),
 			OAuth: OAuthConfig{
 				StateExpirationDuration: bootstrap.Config().GetDuration(AuthOAuthStateExpirationKey),
 				GithubClientID:          bootstrap.Config().GetString(AuthGithubClientIDKey),
@@ -156,6 +192,13 @@ func LoadGRPC() GRPCConfig {
 				RefreshTokenExpiration: bootstrap.Config().GetDuration(AuthRefreshTokenExpirationKey),
 				ServiceTokenExpiration: bootstrap.Config().GetDuration(AuthServiceTokenExpirationKey),
 			},
+		},
+		Bootstrap: BootstrapConfig{
+			Enabled:      bootstrap.Config().GetBool(BootstrapServiceAccountEnabledKey),
+			Name:         bootstrap.Config().GetString(BootstrapServiceAccountNameKey),
+			ClientID:     bootstrap.Config().GetString(BootstrapServiceAccountClientIDKey),
+			ClientSecret: bootstrap.Config().GetString(BootstrapServiceAccountClientSecretKey),
+			Scopes:       getStringSlice(BootstrapServiceAccountScopesKey),
 		},
 	}
 }

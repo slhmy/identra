@@ -67,6 +67,30 @@ CREATE UNIQUE INDEX idx_external_identities_provider_provider_user_id
 	if user.Email != "legacy@example.com" {
 		t.Fatalf("legacy user email = %q", user.Email)
 	}
+	var version int
+	if err := db.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
+		t.Fatalf("read schema version: %v", err)
+	}
+	if version != CurrentSchemaVersion {
+		t.Fatalf("schema version = %d, want %d", version, CurrentSchemaVersion)
+	}
+}
+
+func TestOpenRejectsNewerSchema(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "future.db")
+	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(path))
+	if err != nil {
+		t.Fatalf("open future database: %v", err)
+	}
+	if _, err := db.Exec("PRAGMA user_version = 999"); err != nil {
+		t.Fatalf("set future version: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close future database: %v", err)
+	}
+	if _, err := Open(Config{Path: path}); err == nil {
+		t.Fatal("expected newer schema to be rejected")
+	}
 }
 
 func TestConfigValidateRejectsEmptyPath(t *testing.T) {

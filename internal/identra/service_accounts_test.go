@@ -76,9 +76,23 @@ func TestServiceAccountManagementFlow(t *testing.T) {
 }
 
 func TestExchangeServiceTokenRejectsInvalidCredential(t *testing.T) {
-	svc := &Service{serviceAccountStore: &memoryServiceAccountStore{}, tokenCfg: newTestTokenConfig(t)}
+	limiter := newMockRateLimiter(true)
+	svc := &Service{serviceAccountStore: &memoryServiceAccountStore{}, tokenCfg: newTestTokenConfig(t), serviceTokenRateLimiter: limiter}
 	_, err := svc.ExchangeServiceToken(context.Background(), &identra_v1_pb.ExchangeServiceTokenRequest{})
 	requireCode(t, err, codes.Unauthenticated)
+	if limiter.recorded != 1 {
+		t.Fatalf("rate-limit records = %d, want 1", limiter.recorded)
+	}
+}
+
+func TestExchangeServiceTokenRateLimitBlocksBeforeAuthentication(t *testing.T) {
+	svc := &Service{
+		serviceAccountStore:     &memoryServiceAccountStore{},
+		tokenCfg:                newTestTokenConfig(t),
+		serviceTokenRateLimiter: newMockRateLimiter(false),
+	}
+	_, err := svc.ExchangeServiceToken(context.Background(), &identra_v1_pb.ExchangeServiceTokenRequest{ClientId: "blocked"})
+	requireCode(t, err, codes.ResourceExhausted)
 }
 
 func serviceTokenContext(token string) context.Context {

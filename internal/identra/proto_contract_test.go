@@ -14,6 +14,8 @@ var (
 	_ identra_v1_pb.UserServiceServer           = (*Service)(nil)
 	_ identra_v1_pb.KeyServiceServer            = (*Service)(nil)
 	_ identra_v1_pb.ServiceAccountServiceServer = (*Service)(nil)
+	_ identra_v1_pb.AuditServiceServer          = (*Service)(nil)
+	_ identra_v1_pb.SystemServiceServer         = (*Service)(nil)
 )
 
 func TestPublicGRPCServices(t *testing.T) {
@@ -29,6 +31,8 @@ func TestPublicGRPCServices(t *testing.T) {
 			"ExchangeServiceToken", "CreateServiceAccount", "ListServiceAccounts",
 			"DisableServiceAccount", "RotateServiceAccountSecret",
 		},
+		"identra.v1.AuditService":  {"ListAuditEvents"},
+		"identra.v1.SystemService": {"GetServerInfo"},
 	}
 
 	for serviceName, wantMethods := range want {

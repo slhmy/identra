@@ -21,6 +21,7 @@ services:
       PERSISTENCE_TYPE: sqlite
       PERSISTENCE_SQLITE_PATH: /app/data/users.db
       AUTH_TOKEN_ISSUER: identra
+      AUTH_RSA_PRIVATE_KEY_FILE: /app/data/signing-key.pem
       SMTP_MAILER_HOST: mailpit
       SMTP_MAILER_PORT: "1025"
       SMTP_MAILER_FROM_EMAIL: noreply@identra.local

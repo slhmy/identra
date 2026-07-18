@@ -65,3 +65,6 @@ jobs:
           buf generate --clean
           sqlc generate
           git diff --exit-code gen internal/store/sqlite/sqlitedb
+
+      - name: Restart and upgrade smoke test
+        run: bash scripts/smoke.sh

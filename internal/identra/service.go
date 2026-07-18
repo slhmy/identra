@@ -16,6 +16,8 @@ type Service struct {
 	identra_v1_pb.UnimplementedUserServiceServer
 	identra_v1_pb.UnimplementedKeyServiceServer
 	identra_v1_pb.UnimplementedServiceAccountServiceServer
+	identra_v1_pb.UnimplementedAuditServiceServer
+	identra_v1_pb.UnimplementedSystemServiceServer
 
 	emailCodeStore           EmailCodeStore
 	oauthStateStore          OAuthStateStore
@@ -38,6 +40,9 @@ type Service struct {
 	// refreshTokenRevocations blocks reuse of refresh tokens after logout,
 	// explicit revocation, or successful refresh-token rotation.
 	refreshTokenRevocations RefreshTokenRevocationStore
+	serviceTokenRateLimiter RateLimiter
+	auditStore              AuditStore
+	serverInfo              ServerInfo
 }
 
 func (s *Service) Close(ctx context.Context) error {

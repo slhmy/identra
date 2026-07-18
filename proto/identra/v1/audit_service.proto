@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package identra.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
+
+// AuditService exposes security-sensitive management activity.
+// All methods require authorization: Bearer <service token> metadata.
+service AuditService {
+  rpc ListAuditEvents(ListAuditEventsRequest) returns (ListAuditEventsResponse);
+}
+
+enum AuditActorType {
+  AUDIT_ACTOR_TYPE_UNSPECIFIED = 0;
+  AUDIT_ACTOR_TYPE_SYSTEM = 1;
+  AUDIT_ACTOR_TYPE_SERVICE_ACCOUNT = 2;
+}
+
+message AuditEvent {
+  string id = 1;
+  google.protobuf.Timestamp occurred_at = 2;
+  AuditActorType actor_type = 3;
+  string actor_id = 4;
+  string action = 5;
+  string resource_type = 6;
+  string resource_id = 7;
+  map<string, string> metadata = 8;
+}
+
+message ListAuditEventsRequest {
+  uint32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListAuditEventsResponse {
+  repeated AuditEvent audit_events = 1;
+  string next_page_token = 2;
+}

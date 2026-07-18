@@ -17,6 +17,7 @@ import (
 	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
 	"github.com/slhmy/identra/internal/app"
 	"github.com/slhmy/identra/internal/bootstrap"
+	"github.com/slhmy/identra/internal/buildinfo"
 	"github.com/slhmy/identra/internal/config"
 	"github.com/slhmy/identra/internal/serviceaccount"
 	"github.com/slhmy/identra/internal/store/sqlite"
@@ -24,12 +25,6 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
-)
-
-var (
-	version = "dev"
-	commit  = "unknown"
-	date    = "unknown"
 )
 
 func main() {
@@ -58,8 +53,12 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return runTokenCommand(args[1:], stdout, stderr)
 	case "service-account":
 		return runServiceAccountCommand(args[1:], stdout, stderr)
+	case "audit":
+		return runAuditCommand(args[1:], stdout, stderr)
+	case "server-info":
+		return runServerInfoCommand(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
-		_, err := fmt.Fprintf(stdout, "identra %s (commit %s, built %s)\n", version, commit, date)
+		_, err := fmt.Fprintf(stdout, "identra %s (commit %s, built %s)\n", buildinfo.Version, buildinfo.Commit, buildinfo.Date)
 		return err
 	case "help", "--help", "-h":
 		return printUsage(stdout)
@@ -77,6 +76,8 @@ func printUsage(w io.Writer) error {
   identra bootstrap service-account --name NAME --scope SCOPE [--scope SCOPE...]
   identra token service --client-id ID [--client-secret-file FILE]
   identra service-account create|list|disable|rotate [options]
+  identra audit list [options]
+  identra server-info [options]
   identra version`)
 	return err
 }
@@ -192,6 +193,8 @@ func serve() error {
 	identra_v1_pb.RegisterUserServiceServer(grpcServer, authService)
 	identra_v1_pb.RegisterKeyServiceServer(grpcServer, authService)
 	identra_v1_pb.RegisterServiceAccountServiceServer(grpcServer, authService)
+	identra_v1_pb.RegisterAuditServiceServer(grpcServer, authService)
+	identra_v1_pb.RegisterSystemServiceServer(grpcServer, authService)
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)

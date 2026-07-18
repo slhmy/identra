@@ -62,11 +62,31 @@ func TestBootstrapDoesNotReturnSecretForExistingAccount(t *testing.T) {
 	}
 }
 
+func TestBootstrapUsesConfiguredCredential(t *testing.T) {
+	store := &captureStore{created: true}
+	secret := "configured-secret-with-at-least-thirty-two-characters"
+	result, err := Bootstrap(context.Background(), store, BootstrapRequest{
+		Name: "railway-admin", Scopes: []string{"identra.admin"},
+		ClientID: "isa_railway_admin", ClientSecret: secret,
+	})
+	if err != nil {
+		t.Fatalf("bootstrap configured credential: %v", err)
+	}
+	if result.ID != "isa_railway_admin" || result.ClientSecret != secret {
+		t.Fatalf("unexpected configured credential result: %+v", result)
+	}
+	if store.record.SecretHash == secret {
+		t.Fatal("configured secret was stored as plaintext")
+	}
+}
+
 func TestBootstrapValidatesInput(t *testing.T) {
 	tests := []BootstrapRequest{
 		{Scopes: []string{"identra.admin"}},
 		{Name: "admin"},
 		{Name: "admin", Scopes: []string{"invalid scope"}},
+		{Name: "admin", Scopes: []string{"identra.admin"}, ClientID: "isa_admin"},
+		{Name: "admin", Scopes: []string{"identra.admin"}, ClientID: "isa_admin", ClientSecret: "short"},
 	}
 	for _, req := range tests {
 		if _, err := Bootstrap(context.Background(), &captureStore{}, req); err == nil {

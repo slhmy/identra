@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package identra.v1;
+
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
+
+// SystemService exposes public build and capability discovery.
+service SystemService {
+  rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse);
+}
+
+message GetServerInfoRequest {}
+
+message GetServerInfoResponse {
+  string version = 1;
+  string commit = 2;
+  string build_date = 3;
+  uint32 schema_version = 4;
+  repeated string capabilities = 5;
+}

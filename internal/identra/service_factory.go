@@ -25,6 +25,9 @@ type Dependencies struct {
 	LoginRateLimiter         RateLimiter
 	SendCodeRateLimiter      RateLimiter
 	RefreshTokenRevocations  RefreshTokenRevocationStore
+	ServiceTokenRateLimiter  RateLimiter
+	AuditStore               AuditStore
+	ServerInfo               ServerInfo
 }
 
 func NewService(deps Dependencies) (*Service, error) {
@@ -42,6 +45,9 @@ func NewService(deps Dependencies) (*Service, error) {
 	}
 	if deps.ServiceAccountStore == nil {
 		return nil, errors.New("service account store is required")
+	}
+	if deps.AuditStore == nil {
+		return nil, errors.New("audit store is required")
 	}
 	if deps.KeyManager == nil {
 		return nil, errors.New("key manager is required")
@@ -68,5 +74,8 @@ func NewService(deps Dependencies) (*Service, error) {
 		loginRateLimiter:         deps.LoginRateLimiter,
 		sendCodeRateLimiter:      deps.SendCodeRateLimiter,
 		refreshTokenRevocations:  deps.RefreshTokenRevocations,
+		serviceTokenRateLimiter:  deps.ServiceTokenRateLimiter,
+		auditStore:               deps.AuditStore,
+		serverInfo:               deps.ServerInfo,
 	}, nil
 }

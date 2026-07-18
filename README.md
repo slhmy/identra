@@ -12,6 +12,8 @@ The public API is defined in `proto/identra/v1` and split by responsibility:
 - `identra.v1.UserService`: current-user data and OAuth account linking
 - `identra.v1.KeyService`: public signing keys for JWT verification
 - `identra.v1.ServiceAccountService`: service-token exchange and scoped machine-identity management
+- `identra.v1.AuditService`: paginated management audit events
+- `identra.v1.SystemService`: public build, schema, and capability discovery
 
 Generated Go clients are committed under `gen/go/identra/v1`. Server reflection and the standard gRPC
 health service are enabled.
@@ -151,8 +153,10 @@ docker compose run --rm --no-deps \
 
 The CLI connects to `localhost:50051` without TLS by default, matching the local
 server. Use `--endpoint` for another address and `--tls` when TLS terminates at
-Identra or an upstream proxy. The built-in scopes are `identra.admin`,
-`identra.service_accounts.manage`, and `identra.service_accounts.read`.
+an upstream proxy. The built-in scopes are `identra.admin`,
+`identra.service_accounts.manage`, `identra.service_accounts.read`, and `identra.audit.read`.
+Use `identra audit list` to inspect management activity and `identra server-info` to discover the
+running version and capabilities.
 
 ## Authentication flows
 
@@ -188,6 +192,7 @@ Defaults are registered in `internal/bootstrap/config_defaults.go`. Common setti
 
 - `grpc_port`
 - `auth.rsa_private_key`
+- `auth.rsa_private_key_file` (defaults to `data/signing-key.pem`)
 - `auth.oauth_state_expiration`
 - `auth.access_token_expiration`, `auth.refresh_token_expiration`, `auth.service_token_expiration`, `auth.token_issuer`
 - `auth.github.client_id`, `auth.github.client_secret`
@@ -196,7 +201,13 @@ Defaults are registered in `internal/bootstrap/config_defaults.go`. Common setti
 - `smtp_mailer.*`
 
 SQLite is the current persistence implementation. Redis stores email codes, OAuth state, rate limits,
-and refresh-token revocations. If no RSA private key is configured, Identra generates one at startup.
+and refresh-token revocations. If no inline RSA private key is configured, Identra creates a private
+key once at `auth.rsa_private_key_file` and reuses it across restarts. Back up that file together with
+the SQLite database.
+
+The gRPC listener is plaintext. Production deployments should expose it through a TLS-capable ingress,
+load balancer, or service mesh and keep the direct listener on a trusted network. The CLI's `--tls`
+flag is for that external TLS endpoint.
 
 ## Development
 
@@ -210,5 +221,10 @@ make verify         # vet, tests, lint, architecture, generated-file check
 Install Buf and sqlc before generation. The committed protobuf outputs must remain in sync with the
 definitions under `proto/identra/v1`.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [Agent.md](Agent.md) for a
+See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for deployment configuration,
+[docs/UPGRADING_V0.2.md](docs/UPGRADING_V0.2.md) for the upgrade procedure,
+[docs/RELEASING.md](docs/RELEASING.md) for release operations, and [Agent.md](Agent.md) for a
 consumer-oriented integration guide.
+
+Railway deployments can use the idempotent startup bootstrap described in
+[docs/RAILWAY.md](docs/RAILWAY.md); it does not require a pre-deploy command.
