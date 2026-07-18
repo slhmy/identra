@@ -54,6 +54,10 @@ func run(args []string, stdout, stderr io.Writer) error {
 		return serve()
 	case "bootstrap":
 		return runBootstrap(args[1:], stdout, stderr)
+	case "token":
+		return runTokenCommand(args[1:], stdout, stderr)
+	case "service-account":
+		return runServiceAccountCommand(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
 		_, err := fmt.Fprintf(stdout, "identra %s (commit %s, built %s)\n", version, commit, date)
 		return err
@@ -71,6 +75,8 @@ func printUsage(w io.Writer) error {
 	_, err := fmt.Fprintln(w, `Usage:
   identra serve
   identra bootstrap service-account --name NAME --scope SCOPE [--scope SCOPE...]
+  identra token service --client-id ID [--client-secret-file FILE]
+  identra service-account create|list|disable|rotate [options]
   identra version`)
 	return err
 }
@@ -185,6 +191,7 @@ func serve() error {
 	identra_v1_pb.RegisterSessionServiceServer(grpcServer, authService)
 	identra_v1_pb.RegisterUserServiceServer(grpcServer, authService)
 	identra_v1_pb.RegisterKeyServiceServer(grpcServer, authService)
+	identra_v1_pb.RegisterServiceAccountServiceServer(grpcServer, authService)
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)

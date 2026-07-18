@@ -9,10 +9,11 @@ import (
 )
 
 var (
-	_ identra_v1_pb.AuthServiceServer    = (*Service)(nil)
-	_ identra_v1_pb.SessionServiceServer = (*Service)(nil)
-	_ identra_v1_pb.UserServiceServer    = (*Service)(nil)
-	_ identra_v1_pb.KeyServiceServer     = (*Service)(nil)
+	_ identra_v1_pb.AuthServiceServer           = (*Service)(nil)
+	_ identra_v1_pb.SessionServiceServer        = (*Service)(nil)
+	_ identra_v1_pb.UserServiceServer           = (*Service)(nil)
+	_ identra_v1_pb.KeyServiceServer            = (*Service)(nil)
+	_ identra_v1_pb.ServiceAccountServiceServer = (*Service)(nil)
 )
 
 func TestPublicGRPCServices(t *testing.T) {
@@ -24,6 +25,10 @@ func TestPublicGRPCServices(t *testing.T) {
 		"identra.v1.SessionService": {"RefreshSession", "RevokeSession"},
 		"identra.v1.UserService":    {"GetCurrentUser", "LinkOAuthAccount"},
 		"identra.v1.KeyService":     {"ListSigningKeys"},
+		"identra.v1.ServiceAccountService": {
+			"ExchangeServiceToken", "CreateServiceAccount", "ListServiceAccounts",
+			"DisableServiceAccount", "RotateServiceAccountSecret",
+		},
 	}
 
 	for serviceName, wantMethods := range want {

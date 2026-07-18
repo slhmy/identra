@@ -14,6 +14,7 @@ func TestInitConfigAppliesDefaults(t *testing.T) {
 		"AUTH_OAUTH_STATE_EXPIRATION",
 		"AUTH_ACCESS_TOKEN_EXPIRATION",
 		"AUTH_REFRESH_TOKEN_EXPIRATION",
+		"AUTH_SERVICE_TOKEN_EXPIRATION",
 		"AUTH_TOKEN_ISSUER",
 		"REDIS_URLS",
 		"SMTP_MAILER_START_TLS",
@@ -43,6 +44,9 @@ func TestInitConfigAppliesDefaults(t *testing.T) {
 	}
 	if got := config.GetDuration("auth.refresh_token_expiration"); got != 7*24*time.Hour {
 		t.Fatalf("expected default refresh token expiration 168h, got %s", got)
+	}
+	if got := config.GetDuration("auth.service_token_expiration"); got != 15*time.Minute {
+		t.Fatalf("expected default service token expiration 15m, got %s", got)
 	}
 	if got := config.GetString("auth.token_issuer"); got != "identra" {
 		t.Fatalf("expected default token issuer identra, got %q", got)

@@ -11,6 +11,7 @@ The public API is defined in `proto/identra/v1` and split by responsibility:
 - `identra.v1.SessionService`: refresh and revoke sessions
 - `identra.v1.UserService`: current-user data and OAuth account linking
 - `identra.v1.KeyService`: public signing keys for JWT verification
+- `identra.v1.ServiceAccountService`: service-token exchange and scoped machine-identity management
 
 Generated Go clients are committed under `gen/go/identra/v1`. Server reflection and the standard gRPC
 health service are enabled.
@@ -111,9 +112,47 @@ The generated `client_secret` is shown exactly once; only its hash is stored.
 Bootstrap is blocked after the first account is created. `--if-not-exists`
 makes deployment scripts idempotent without generating another secret, while
 `--force` is reserved for an operator with direct database access performing
-recovery. Service-token exchange and authenticated remote administration will
-build on this persisted account and credential model; they are not exposed as
-an unauthenticated bootstrap RPC.
+recovery. Bootstrap is an offline database operation and is not exposed as an
+unauthenticated RPC.
+
+Exchange the bootstrap credential for a short-lived Service Token. Secrets are
+accepted from an environment variable or file, never from a command-line flag:
+
+```sh
+export IDENTRA_CLIENT_ID='<client-id>'
+export IDENTRA_CLIENT_SECRET='<client-secret>'
+identra token service --endpoint localhost:50051
+```
+
+Use the returned `token.value` as `IDENTRA_SERVICE_TOKEN` or store it in a file,
+then manage machine identities remotely:
+
+```sh
+export IDENTRA_SERVICE_TOKEN='<service-token>'
+
+identra service-account create \
+  --name reporting-worker \
+  --scope identra.service_accounts.read
+
+identra service-account list
+identra service-account rotate --client-id '<client-id>'
+identra service-account disable --client-id '<client-id>'
+```
+
+The same online CLI is available from the Docker image. With the server already
+running, pass secrets through inherited environment variables and address the
+Compose service by name:
+
+```sh
+docker compose run --rm --no-deps \
+  -e IDENTRA_CLIENT_ID -e IDENTRA_CLIENT_SECRET \
+  identra token service --endpoint identra:50051
+```
+
+The CLI connects to `localhost:50051` without TLS by default, matching the local
+server. Use `--endpoint` for another address and `--tls` when TLS terminates at
+Identra or an upstream proxy. The built-in scopes are `identra.admin`,
+`identra.service_accounts.manage`, and `identra.service_accounts.read`.
 
 ## Authentication flows
 
@@ -150,7 +189,7 @@ Defaults are registered in `internal/bootstrap/config_defaults.go`. Common setti
 - `grpc_port`
 - `auth.rsa_private_key`
 - `auth.oauth_state_expiration`
-- `auth.access_token_expiration`, `auth.refresh_token_expiration`, `auth.token_issuer`
+- `auth.access_token_expiration`, `auth.refresh_token_expiration`, `auth.service_token_expiration`, `auth.token_issuer`
 - `auth.github.client_id`, `auth.github.client_secret`
 - `redis.urls`, `redis.password`
 - `persistence.type`, `persistence.sqlite.path`

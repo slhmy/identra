@@ -28,6 +28,7 @@ func logGRPCConfig() {
 		"auth.oauth_state_expiration", config.GetString("auth.oauth_state_expiration"),
 		"auth.access_token_expiration", config.GetString("auth.access_token_expiration"),
 		"auth.refresh_token_expiration", config.GetString("auth.refresh_token_expiration"),
+		"auth.service_token_expiration", config.GetString("auth.service_token_expiration"),
 		"auth.token_issuer", config.GetString("auth.token_issuer"),
 	)
 }

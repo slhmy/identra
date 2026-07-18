@@ -10,6 +10,7 @@ const (
 	AuthOAuthStateExpirationKey     = "auth.oauth_state_expiration"
 	AuthAccessTokenExpirationKey    = "auth.access_token_expiration"
 	AuthRefreshTokenExpirationKey   = "auth.refresh_token_expiration"
+	AuthServiceTokenExpirationKey   = "auth.service_token_expiration"
 	AuthTokenIssuerKey              = "auth.token_issuer"
 	AuthOAuthFetchEmailIfMissingKey = "auth.oauth.fetch_email_if_missing"
 	AuthGithubClientIDKey           = "auth.github.client_id"

@@ -22,7 +22,7 @@ func NewService(ctx context.Context, cfg config.GRPCConfig) (*identra.Service, e
 func buildIdentraDependencies(ctx context.Context, cfg config.GRPCConfig) (identra.Dependencies, error) {
 	mailer := buildMailer(cfg.SmtpMailer)
 
-	userStore, externalIdentityStore, cleanup, storeErr := buildStores(ctx, cfg.Persistence)
+	userStore, externalIdentityStore, serviceAccountStore, cleanup, storeErr := buildStores(ctx, cfg.Persistence)
 	if storeErr != nil {
 		return identra.Dependencies{}, storeErr
 	}
@@ -40,6 +40,7 @@ func buildIdentraDependencies(ctx context.Context, cfg config.GRPCConfig) (ident
 	return identra.Dependencies{
 		UserStore:                userStore,
 		ExternalIdentityStore:    externalIdentityStore,
+		ServiceAccountStore:      serviceAccountStore,
 		KeyManager:               keys.manager,
 		TokenConfig:              keys.tokenConfig,
 		OAuthStateStore:          redisDeps.oauthStateStore,

@@ -18,14 +18,17 @@ type TokenType string
 const (
 	AccessTokenType  TokenType = "access"
 	RefreshTokenType TokenType = "refresh"
+	ServiceTokenType TokenType = "service"
 )
 
 // StandardClaims represents JWKS-compliant JWT claims.
 type StandardClaims struct {
 	jwt.RegisteredClaims
-	UserID    string    `json:"uid"`
-	TokenType TokenType `json:"typ"`
-	TokenID   string    `json:"jti"`
+	UserID           string    `json:"uid"`
+	TokenType        TokenType `json:"typ"`
+	TokenID          string    `json:"jti"`
+	ServiceAccountID string    `json:"sid,omitempty"`
+	Scopes           []string  `json:"scp,omitempty"`
 }
 
 // TokenConfig holds configuration for token generation.
@@ -36,6 +39,7 @@ type TokenConfig struct {
 	Issuer                 string
 	AccessTokenExpiration  time.Duration
 	RefreshTokenExpiration time.Duration
+	ServiceTokenExpiration time.Duration
 }
 
 // NewStandardClaims creates JWKS-compliant claims for a token.
@@ -113,6 +117,26 @@ func NewTokenPair(
 	}, nil
 }
 
+// NewServiceToken creates a short-lived bearer token for a service account.
+func NewServiceToken(serviceAccountID string, scopes []string, config TokenConfig) (*identra_v1_pb.Token, error) {
+	expiresAt := time.Now().Add(config.ServiceTokenExpiration)
+	claims, err := NewStandardClaims(serviceAccountID, ServiceTokenType, config.Issuer, expiresAt)
+	if err != nil {
+		return nil, err
+	}
+	claims.UserID = ""
+	claims.ServiceAccountID = serviceAccountID
+	claims.Scopes = append([]string(nil), scopes...)
+	value, err := GenerateToken(claims, config.PrivateKey, config.KeyID)
+	if err != nil {
+		return nil, err
+	}
+	return &identra_v1_pb.Token{
+		Value:     value,
+		ExpiresAt: timestamppb.New(expiresAt),
+	}, nil
+}
+
 // ValidateToken validates a JWT token and returns the claims.
 func ValidateToken(tokenString string, publicKey *rsa.PublicKey) (*StandardClaims, error) {
 	token, err := jwt.ParseWithClaims(
@@ -161,6 +185,18 @@ func ValidateRefreshToken(tokenString string, publicKey *rsa.PublicKey) (*Standa
 		return nil, jwt.ErrTokenInvalidClaims
 	}
 
+	return claims, nil
+}
+
+// ValidateServiceToken validates a service-account bearer token.
+func ValidateServiceToken(tokenString string, publicKey *rsa.PublicKey) (*StandardClaims, error) {
+	claims, err := ValidateToken(tokenString, publicKey)
+	if err != nil {
+		return nil, err
+	}
+	if claims.TokenType != ServiceTokenType || claims.ServiceAccountID == "" {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
 	return claims, nil
 }
 

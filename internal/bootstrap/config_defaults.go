@@ -11,6 +11,7 @@ func applyConfigDefaults(v *viper.Viper) {
 	v.SetDefault("auth.oauth_state_expiration", "10m")
 	v.SetDefault("auth.access_token_expiration", "15m")
 	v.SetDefault("auth.refresh_token_expiration", "168h")
+	v.SetDefault("auth.service_token_expiration", "15m")
 	v.SetDefault("auth.token_issuer", "identra")
 	v.SetDefault("auth.oauth.fetch_email_if_missing", false)
 

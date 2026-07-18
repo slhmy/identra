@@ -8,6 +8,7 @@ Identra exposes a gRPC-only authentication and user-management API on `identra.v
 - `SessionService`: refresh-token rotation and revocation
 - `UserService`: current-user data and OAuth account linking
 - `KeyService`: typed RSA public keys for JWT verification
+- `ServiceAccountService`: Service Token exchange and scoped machine-identity management
 
 Use server reflection or the proto files under `proto/identra/v1` as the API reference:
 
@@ -30,6 +31,19 @@ For authenticated methods, send the access token only as metadata:
 ```text
 authorization: Bearer <access-token>
 ```
+
+Service Tokens are short-lived RS256 JWTs with `typ=service`, `sid`, and `scp`
+claims. Exchange a `client_id` and one-time `client_secret` through
+`ServiceAccountService.ExchangeServiceToken`. Send the returned token as Bearer
+metadata to management methods. Identra rechecks account status and current
+scopes on every management call, so disabling an account takes effect
+immediately even when a signed token has not expired.
+
+Available management scopes are:
+
+- `identra.admin`: all management permissions
+- `identra.service_accounts.manage`: create, rotate, disable, and list
+- `identra.service_accounts.read`: list only
 
 ## Common flows
 

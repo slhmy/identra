@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/slhmy/identra/internal/security"
+	"github.com/slhmy/identra/internal/serviceaccount"
 	"golang.org/x/oauth2"
 )
 
@@ -14,6 +15,7 @@ type Dependencies struct {
 	OAuthStateStore          OAuthStateStore
 	UserStore                UserStore
 	ExternalIdentityStore    ExternalIdentityStore
+	ServiceAccountStore      serviceaccount.Store
 	UserStoreCleanup         func(context.Context) error
 	KeyManager               *security.KeyManager
 	TokenConfig              security.TokenConfig
@@ -38,6 +40,9 @@ func NewService(deps Dependencies) (*Service, error) {
 	if deps.ExternalIdentityStore == nil {
 		return nil, errors.New("external identity store is required")
 	}
+	if deps.ServiceAccountStore == nil {
+		return nil, errors.New("service account store is required")
+	}
 	if deps.KeyManager == nil {
 		return nil, errors.New("key manager is required")
 	}
@@ -51,6 +56,7 @@ func NewService(deps Dependencies) (*Service, error) {
 	return &Service{
 		userStore:                deps.UserStore,
 		externalIdentityStore:    deps.ExternalIdentityStore,
+		serviceAccountStore:      deps.ServiceAccountStore,
 		keyManager:               deps.KeyManager,
 		tokenCfg:                 deps.TokenConfig,
 		oauthStateStore:          deps.OAuthStateStore,

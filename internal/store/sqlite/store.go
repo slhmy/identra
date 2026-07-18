@@ -199,6 +199,9 @@ func wrapError(err error) error {
 }
 
 func isUniqueConstraintError(err error) bool {
+	if err == nil {
+		return false
+	}
 	message := strings.ToLower(err.Error())
 	return strings.Contains(message, "unique constraint") || strings.Contains(message, "primary key constraint")
 }

@@ -5,6 +5,7 @@ import (
 
 	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
 	"github.com/slhmy/identra/internal/security"
+	"github.com/slhmy/identra/internal/serviceaccount"
 	"golang.org/x/oauth2"
 )
 
@@ -14,11 +15,13 @@ type Service struct {
 	identra_v1_pb.UnimplementedSessionServiceServer
 	identra_v1_pb.UnimplementedUserServiceServer
 	identra_v1_pb.UnimplementedKeyServiceServer
+	identra_v1_pb.UnimplementedServiceAccountServiceServer
 
 	emailCodeStore           EmailCodeStore
 	oauthStateStore          OAuthStateStore
 	userStore                UserStore
 	externalIdentityStore    ExternalIdentityStore
+	serviceAccountStore      serviceaccount.Store
 	userStoreCleanup         func(context.Context) error
 	keyManager               *security.KeyManager
 	tokenCfg                 security.TokenConfig

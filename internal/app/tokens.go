@@ -33,6 +33,7 @@ func buildTokenKeys(cfg config.AuthConfig) (tokenKeys, error) {
 		Issuer:                 cfg.Token.Issuer,
 		AccessTokenExpiration:  cfg.Token.AccessTokenExpiration,
 		RefreshTokenExpiration: cfg.Token.RefreshTokenExpiration,
+		ServiceTokenExpiration: cfg.Token.ServiceTokenExpiration,
 	}
 	if tokenCfg.PrivateKey == nil || tokenCfg.PublicKey == nil {
 		return tokenKeys{}, errors.New("token keys are not initialized")

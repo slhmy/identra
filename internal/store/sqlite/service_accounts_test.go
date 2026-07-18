@@ -5,6 +5,7 @@ import (
 	"errors"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/slhmy/identra/internal/serviceaccount"
 )
@@ -35,6 +36,13 @@ func TestServiceAccountBootstrapLifecycle(t *testing.T) {
 	if storedHash == first.ClientSecret {
 		t.Fatal("database contains plaintext client secret")
 	}
+	authenticated, err := serviceaccount.Authenticate(ctx, store, first.ID, first.ClientSecret)
+	if err != nil || authenticated.ID != first.ID {
+		t.Fatalf("authenticate first account result=%+v error=%v", authenticated, err)
+	}
+	if _, err := serviceaccount.Authenticate(ctx, store, first.ID, "wrong-secret"); !errors.Is(err, serviceaccount.ErrInvalidCredential) {
+		t.Fatalf("invalid credential error = %v", err)
+	}
 
 	existing, err := serviceaccount.Bootstrap(ctx, store, serviceaccount.BootstrapRequest{
 		Name: "platform-admin", Scopes: []string{"identra.admin"}, IfNotExists: true,
@@ -58,5 +66,31 @@ func TestServiceAccountBootstrapLifecycle(t *testing.T) {
 	})
 	if err != nil || !second.Created {
 		t.Fatalf("forced bootstrap result=%+v error=%v", second, err)
+	}
+
+	managed, err := serviceaccount.Create(ctx, store, "worker", []string{"identra.users.read"})
+	if err != nil {
+		t.Fatalf("managed create: %v", err)
+	}
+	accounts, err := store.List(ctx)
+	if err != nil || len(accounts) != 3 {
+		t.Fatalf("list accounts len=%d error=%v", len(accounts), err)
+	}
+	rotatedSecret, err := serviceaccount.RotateCredential(ctx, store, managed.ID)
+	if err != nil {
+		t.Fatalf("rotate credential: %v", err)
+	}
+	if _, err := serviceaccount.Authenticate(ctx, store, managed.ID, managed.ClientSecret); !errors.Is(err, serviceaccount.ErrInvalidCredential) {
+		t.Fatalf("old credential error = %v", err)
+	}
+	if _, err := serviceaccount.Authenticate(ctx, store, managed.ID, rotatedSecret); err != nil {
+		t.Fatalf("new credential authentication: %v", err)
+	}
+	disabled, err := store.Disable(ctx, managed.ID, time.Now().UTC())
+	if err != nil || disabled.DisabledAt == nil {
+		t.Fatalf("disable result=%+v error=%v", disabled, err)
+	}
+	if _, err := serviceaccount.Authenticate(ctx, store, managed.ID, rotatedSecret); !errors.Is(err, serviceaccount.ErrInvalidCredential) {
+		t.Fatalf("disabled authentication error = %v", err)
 	}
 }

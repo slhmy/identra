@@ -37,6 +37,7 @@ type TokenConfig struct {
 	Issuer                 string
 	AccessTokenExpiration  time.Duration
 	RefreshTokenExpiration time.Duration
+	ServiceTokenExpiration time.Duration
 }
 
 type PersistenceConfig struct {
@@ -75,6 +76,9 @@ func (c AuthConfig) Validate() error {
 	}
 	if c.Token.RefreshTokenExpiration <= 0 {
 		return errors.New("refresh token expiration must be positive")
+	}
+	if c.Token.ServiceTokenExpiration <= 0 {
+		return errors.New("service token expiration must be positive")
 	}
 	return nil
 }
@@ -150,6 +154,7 @@ func LoadGRPC() GRPCConfig {
 				Issuer:                 bootstrap.Config().GetString(AuthTokenIssuerKey),
 				AccessTokenExpiration:  bootstrap.Config().GetDuration(AuthAccessTokenExpirationKey),
 				RefreshTokenExpiration: bootstrap.Config().GetDuration(AuthRefreshTokenExpirationKey),
+				ServiceTokenExpiration: bootstrap.Config().GetDuration(AuthServiceTokenExpirationKey),
 			},
 		},
 	}

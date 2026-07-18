@@ -24,6 +24,25 @@ func createTestTokenConfig(t *testing.T) TokenConfig {
 		Issuer:                 "test-issuer",
 		AccessTokenExpiration:  15 * time.Minute,
 		RefreshTokenExpiration: 7 * 24 * time.Hour,
+		ServiceTokenExpiration: 15 * time.Minute,
+	}
+}
+
+func TestServiceTokenClaims(t *testing.T) {
+	config := createTestTokenConfig(t)
+	token, err := NewServiceToken("isa_test", []string{"identra.users.read"}, config)
+	if err != nil {
+		t.Fatalf("new service token: %v", err)
+	}
+	claims, err := ValidateServiceToken(token.Value, config.PublicKey)
+	if err != nil {
+		t.Fatalf("validate service token: %v", err)
+	}
+	if claims.ServiceAccountID != "isa_test" || len(claims.Scopes) != 1 || claims.Scopes[0] != "identra.users.read" {
+		t.Fatalf("unexpected claims: %+v", claims)
+	}
+	if _, err := ValidateAccessToken(token.Value, config.PublicKey); err == nil {
+		t.Fatal("service token must not validate as a user access token")
 	}
 }
 

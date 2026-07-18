@@ -25,6 +25,7 @@ func newTestTokenConfig(t *testing.T) security.TokenConfig {
 		Issuer:                 "test",
 		AccessTokenExpiration:  15 * time.Minute,
 		RefreshTokenExpiration: 7 * 24 * time.Hour,
+		ServiceTokenExpiration: 15 * time.Minute,
 	}
 }
 

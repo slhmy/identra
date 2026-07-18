@@ -25,6 +25,7 @@ func TestGRPCConfigValidateAcceptsLocalDefaults(t *testing.T) {
 				Issuer:                 "identra",
 				AccessTokenExpiration:  15 * time.Minute,
 				RefreshTokenExpiration: 7 * 24 * time.Hour,
+				ServiceTokenExpiration: 15 * time.Minute,
 			},
 		},
 	}
@@ -108,6 +109,7 @@ func validGRPCConfig() GRPCConfig {
 				Issuer:                 "identra",
 				AccessTokenExpiration:  15 * time.Minute,
 				RefreshTokenExpiration: 7 * 24 * time.Hour,
+				ServiceTokenExpiration: 15 * time.Minute,
 			},
 		},
 	}
