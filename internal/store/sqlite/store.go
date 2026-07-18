@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mattn/go-sqlite3"
 	"github.com/slhmy/identra/internal/identra"
 	"github.com/slhmy/identra/internal/store/sqlite/sqlitedb"
 )
@@ -193,11 +192,15 @@ func wrapError(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
 		return identra.ErrNotFound
 	}
-	var sqliteErr sqlite3.Error
-	if errors.As(err, &sqliteErr) && (sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique || sqliteErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey) {
+	if isUniqueConstraintError(err) {
 		return identra.ErrAlreadyExists
 	}
 	return err
+}
+
+func isUniqueConstraintError(err error) bool {
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "unique constraint") || strings.Contains(message, "primary key constraint")
 }
 
 func userToDomain(user sqlitedb.User) *identra.UserModel {

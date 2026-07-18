@@ -72,13 +72,13 @@ func initLog() {
 	var handler slog.Handler
 	switch config.GetString(configKeyLogFormat) {
 	case logFormatJSON:
-		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+		handler = slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})
 	case logFormatPlainText:
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})
 	case logFormatTint:
 		fallthrough
 	default:
-		handler = tint.NewHandler(os.Stdout, &tint.Options{Level: logLevel})
+		handler = tint.NewHandler(os.Stderr, &tint.Options{Level: logLevel})
 	}
 	handler = &logHandler{handler}
 	slog.SetDefault(slog.New(handler))

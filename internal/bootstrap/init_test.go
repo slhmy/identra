@@ -12,7 +12,7 @@ func TestFindRootWorkdirUsesNearestConfig(t *testing.T) {
 		t.Fatalf("failed to write config: %v", err)
 	}
 
-	nested := filepath.Join(root, "cmd", "identra-grpc")
+	nested := filepath.Join(root, "cmd", "identra")
 	if err := os.MkdirAll(nested, 0o755); err != nil {
 		t.Fatalf("failed to create nested dir: %v", err)
 	}

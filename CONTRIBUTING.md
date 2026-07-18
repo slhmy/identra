@@ -12,7 +12,7 @@ For a faster host-side loop:
 
 ```sh
 make dev-infra
-make run-grpc
+make run
 ```
 
 The server listens on `localhost:50051`, enables reflection and gRPC health checking, and captures

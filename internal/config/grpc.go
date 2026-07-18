@@ -133,12 +133,7 @@ func LoadGRPC() GRPCConfig {
 			StartTLS:    bootstrap.Config().GetBool(SmtpMailerStartTLSKey),
 			AuthEnabled: bootstrap.Config().GetBool(SmtpMailerAuthEnabledKey),
 		},
-		Persistence: PersistenceConfig{
-			Type: bootstrap.Config().GetString(PersistenceTypeKey),
-			SQLite: sqlite.Config{
-				Path: bootstrap.Config().GetString(PersistenceSQLitePathKey),
-			},
-		},
+		Persistence: LoadPersistence(),
 		Redis: redis.Config{
 			Urls:     getStringSlice(RedisUrlsKey),
 			Password: bootstrap.Config().GetString(RedisPasswordKey),
@@ -156,6 +151,18 @@ func LoadGRPC() GRPCConfig {
 				AccessTokenExpiration:  bootstrap.Config().GetDuration(AuthAccessTokenExpirationKey),
 				RefreshTokenExpiration: bootstrap.Config().GetDuration(AuthRefreshTokenExpirationKey),
 			},
+		},
+	}
+}
+
+// LoadPersistence loads only database configuration for offline commands such
+// as bootstrap and migrations. It deliberately does not require server, Redis,
+// mail, OAuth, or token configuration.
+func LoadPersistence() PersistenceConfig {
+	return PersistenceConfig{
+		Type: bootstrap.Config().GetString(PersistenceTypeKey),
+		SQLite: sqlite.Config{
+			Path: bootstrap.Config().GetString(PersistenceSQLitePathKey),
 		},
 	}
 }

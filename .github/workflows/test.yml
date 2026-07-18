@@ -43,7 +43,7 @@ jobs:
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Install sqlc
-        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0
 
       - name: Vet
         run: go vet ./...

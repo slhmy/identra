@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 //go:embed schema.sql
@@ -38,8 +38,8 @@ func Open(cfg Config) (*sql.DB, error) {
 		}
 	}
 
-	dsn := cfg.Path + "?_foreign_keys=on&_busy_timeout=5000&_journal_mode=WAL"
-	db, err := sql.Open("sqlite3", dsn)
+	dsn := "file:" + filepath.ToSlash(cfg.Path) + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)"
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite database: %w", err)
 	}

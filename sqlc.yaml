@@ -31,3 +31,23 @@ sql:
             go_type:
               type: NullTime
               import: database/sql
+          - column: service_accounts.created_at
+            go_type: time.Time
+          - column: service_accounts.updated_at
+            go_type: time.Time
+          - column: service_accounts.disabled_at
+            go_type:
+              type: NullTime
+              import: database/sql
+          - column: service_account_credentials.created_at
+            go_type: time.Time
+          - column: service_account_credentials.expires_at
+            go_type:
+              type: NullTime
+              import: database/sql
+          - column: service_account_credentials.revoked_at
+            go_type:
+              type: NullTime
+              import: database/sql
+          - column: system_state.updated_at
+            go_type: time.Time

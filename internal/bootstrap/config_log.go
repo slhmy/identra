@@ -12,7 +12,7 @@ func logConfig() {
 		"log.format", config.GetString(configKeyLogFormat),
 	)
 
-	if cmdName == "grpc" {
+	if cmdName == "serve" {
 		logGRPCConfig()
 	}
 }

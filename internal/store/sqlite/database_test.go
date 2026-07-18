@@ -10,7 +10,7 @@ import (
 
 func TestOpenKeepsLegacyGORMSchemaReadable(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "legacy.db")
-	legacy, err := sql.Open("sqlite3", path)
+	legacy, err := sql.Open("sqlite", "file:"+filepath.ToSlash(path))
 	if err != nil {
 		t.Fatalf("open legacy database: %v", err)
 	}

@@ -12,7 +12,7 @@ PROTO_TOOLS := \
 	google.golang.org/protobuf/cmd/protoc-gen-go \
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
-.PHONY: dev dev-infra dev-down run-grpc verify test test-integration vet lint proto-lint arch-check generate generate-check tools proto-tools clean-tools
+.PHONY: dev dev-infra dev-down run bootstrap-service-account verify test test-integration vet lint proto-lint arch-check generate generate-check tools proto-tools clean-tools
 
 verify: vet test lint arch-check generate-check
 
@@ -25,14 +25,17 @@ dev-infra:
 dev-down:
 	docker compose down
 
-run-grpc:
+run:
 	SMTP_MAILER_HOST=localhost \
 	SMTP_MAILER_PORT=1025 \
 	SMTP_MAILER_FROM_EMAIL=noreply@identra.local \
 	SMTP_MAILER_FROM_NAME="Identra Local" \
 	SMTP_MAILER_START_TLS=false \
 	SMTP_MAILER_AUTH_ENABLED=false \
-	$(GO) run ./cmd/identra-grpc
+	$(GO) run ./cmd/identra serve
+
+bootstrap-service-account:
+	$(GO) run ./cmd/identra bootstrap service-account --name platform-admin --scope identra.admin
 
 test:
 	$(GO) test ./...

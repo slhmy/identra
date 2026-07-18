@@ -12,11 +12,9 @@ services:
       - "1025:1025"
       - "8025:8025"
 
-  identra-grpc:
+  identra:
     build:
       context: .
-      args:
-        SERVICE: identra-grpc
     environment:
       GRPC_PORT: "50051"
       REDIS_URLS: redis:6379

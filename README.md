@@ -40,7 +40,7 @@ For host-side development:
 
 ```sh
 make dev-infra
-make run-grpc
+make run
 ```
 
 Use reflection to inspect the API:
@@ -80,6 +80,40 @@ List public signing keys:
 ```sh
 grpcurl -plaintext -d '{}' localhost:50051 identra.v1.KeyService/ListSigningKeys
 ```
+
+## CLI and first service account
+
+Identra ships as one `identra` executable and one container image. The image
+defaults to `identra serve`; operational commands reuse the same configuration
+and data volume.
+
+Create the first privileged service account before starting the service:
+
+```sh
+docker compose run --rm --no-deps identra \
+  bootstrap service-account \
+  --name platform-admin \
+  --scope identra.admin \
+  --output json
+
+docker compose up -d
+```
+
+For a host-side binary, run the equivalent command directly:
+
+```sh
+identra bootstrap service-account \
+  --name platform-admin \
+  --scope identra.admin
+```
+
+The generated `client_secret` is shown exactly once; only its hash is stored.
+Bootstrap is blocked after the first account is created. `--if-not-exists`
+makes deployment scripts idempotent without generating another secret, while
+`--force` is reserved for an operator with direct database access performing
+recovery. Service-token exchange and authenticated remote administration will
+build on this persisted account and credential model; they are not exposed as
+an unauthenticated bootstrap RPC.
 
 ## Authentication flows
 
