@@ -12,10 +12,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Service) RegisterByPassword(
+func (s *Service) RegisterWithPassword(
 	ctx context.Context,
-	req *identra_v1_pb.RegisterByPasswordRequest,
-) (*identra_v1_pb.RegisterByPasswordResponse, error) {
+	req *identra_v1_pb.RegisterWithPasswordRequest,
+) (*identra_v1_pb.RegisterWithPasswordResponse, error) {
 	email := strings.TrimSpace(req.GetEmail())
 	password := req.GetPassword()
 	if email == "" || password == "" {
@@ -53,13 +53,13 @@ func (s *Service) RegisterByPassword(
 		return nil, status.Error(codes.Internal, "failed to create token pair")
 	}
 
-	return &identra_v1_pb.RegisterByPasswordResponse{Token: tokenPair}, nil
+	return &identra_v1_pb.RegisterWithPasswordResponse{Tokens: tokenPair}, nil
 }
 
-func (s *Service) LoginByPassword(
+func (s *Service) LoginWithPassword(
 	ctx context.Context,
-	req *identra_v1_pb.LoginByPasswordRequest,
-) (*identra_v1_pb.LoginByPasswordResponse, error) {
+	req *identra_v1_pb.LoginWithPasswordRequest,
+) (*identra_v1_pb.LoginWithPasswordResponse, error) {
 	email := strings.TrimSpace(req.GetEmail())
 	password := req.GetPassword()
 	if email == "" || password == "" {
@@ -117,5 +117,5 @@ func (s *Service) LoginByPassword(
 		return nil, status.Error(codes.Internal, "failed to create token pair")
 	}
 
-	return &identra_v1_pb.LoginByPasswordResponse{Token: tokenPair}, nil
+	return &identra_v1_pb.LoginWithPasswordResponse{Tokens: tokenPair}, nil
 }

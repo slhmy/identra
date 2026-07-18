@@ -13,18 +13,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Service) GetCurrentUserLoginInfo(
+func (s *Service) GetCurrentUser(
 	ctx context.Context,
-	req *identra_v1_pb.GetCurrentUserLoginInfoRequest,
-) (*identra_v1_pb.GetCurrentUserLoginInfoResponse, error) {
-	accessToken := accessTokenFromRequest(ctx, req.GetAccessToken())
+	_ *identra_v1_pb.GetCurrentUserRequest,
+) (*identra_v1_pb.GetCurrentUserResponse, error) {
+	accessToken := accessTokenFromMetadata(ctx)
 	if accessToken == "" {
-		return nil, status.Error(codes.InvalidArgument, "access token is required")
+		return nil, status.Error(codes.Unauthenticated, "access token is required")
 	}
 
 	claims, err := security.ValidateAccessToken(accessToken, s.tokenCfg.PublicKey)
 	if err != nil {
-		slog.WarnContext(ctx, "invalid access token for get login info", "error", err)
+		slog.WarnContext(ctx, "invalid access token for get current user", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid access token")
 	}
 
@@ -37,41 +37,36 @@ func (s *Service) GetCurrentUserLoginInfo(
 		return nil, status.Error(codes.Internal, "failed to fetch user")
 	}
 
-	resp := &identra_v1_pb.GetCurrentUserLoginInfoResponse{
-		UserId:          usr.ID,
-		Email:           usr.Email,
-		PasswordEnabled: usr.HashedPassword != nil && strings.TrimSpace(*usr.HashedPassword) != "",
+	resp := &identra_v1_pb.GetCurrentUserResponse{
+		User: &identra_v1_pb.User{
+			Id:                   usr.ID,
+			Email:                usr.Email,
+			PasswordLoginEnabled: usr.HashedPassword != nil && strings.TrimSpace(*usr.HashedPassword) != "",
+		},
 	}
 
 	identities, err := s.externalIdentityStore.GetByUserID(ctx, usr.ID)
 	if err != nil {
 		slog.WarnContext(ctx, "failed to fetch external identities", "error", err, "user_id", usr.ID)
 	} else {
-		var githubID string
 		for _, identity := range identities {
-			resp.OauthConnections = append(resp.OauthConnections, &identra_v1_pb.OAuthConnection{
-				Provider:       identity.Provider,
+			resp.User.LinkedOauthAccounts = append(resp.User.LinkedOauthAccounts, &identra_v1_pb.LinkedOAuthAccount{
+				Provider:       authProviderValue(identity.Provider),
 				ProviderUserId: identity.ProviderUserID,
 			})
-			if identity.Provider == "github" && (githubID == "" || identity.ProviderUserID < githubID) {
-				githubID = identity.ProviderUserID
-			}
-		}
-		if githubID != "" {
-			resp.GithubId = &githubID
 		}
 	}
 
 	return resp, nil
 }
 
-func accessTokenFromRequest(ctx context.Context, requestToken string) string {
+func accessTokenFromMetadata(ctx context.Context) string {
 	for _, header := range metadata.ValueFromIncomingContext(ctx, "authorization") {
 		if token := bearerToken(header); token != "" {
 			return token
 		}
 	}
-	return strings.TrimSpace(requestToken)
+	return ""
 }
 
 func bearerToken(header string) string {

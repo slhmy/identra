@@ -13,7 +13,6 @@ var forbiddenCoreImports = map[string]string{
 	"github.com/slhmy/identra/internal/bootstrap": "process bootstrap belongs outside the core service",
 	"github.com/slhmy/identra/internal/cache":     "cache implementations belong outside the core service",
 	"github.com/slhmy/identra/internal/config":    "startup configuration belongs outside the core service",
-	"github.com/slhmy/identra/internal/gateway":   "HTTP gateway belongs outside the core service",
 	"github.com/slhmy/identra/internal/mail":      "mailer implementations belong outside the core service",
 	"github.com/slhmy/identra/internal/oauth":     "OAuth infrastructure belongs outside the core service",
 	"github.com/slhmy/identra/internal/store":     "persistence implementations belong outside the core service",

@@ -73,9 +73,9 @@ func (m *mockRateLimiter) Reset(_ context.Context, key string) error {
 // Verify mockRateLimiter satisfies the RateLimiter interface at compile time.
 var _ RateLimiter = (*mockRateLimiter)(nil)
 
-// ---- LoginByPassword rate-limit tests ----
+// ---- LoginWithPassword rate-limit tests ----
 
-func TestLoginByPassword_RateLimit_BlocksWhenLimitExceeded(t *testing.T) {
+func TestLoginWithPassword_RateLimit_BlocksWhenLimitExceeded(t *testing.T) {
 	hash, err := security.HashPassword("correct")
 	if err != nil {
 		t.Fatalf("hash: %v", err)
@@ -92,14 +92,14 @@ func TestLoginByPassword_RateLimit_BlocksWhenLimitExceeded(t *testing.T) {
 		loginRateLimiter: newMockRateLimiter(false), // limiter says: blocked
 	}
 
-	_, loginErr := svc.LoginByPassword(context.Background(), &identra_v1_pb.LoginByPasswordRequest{
+	_, loginErr := svc.LoginWithPassword(context.Background(), &identra_v1_pb.LoginWithPasswordRequest{
 		Email:    "user@example.com",
 		Password: "correct",
 	})
 	requireCode(t, loginErr, codes.ResourceExhausted)
 }
 
-func TestLoginByPassword_RateLimit_RecordsOnFailure(t *testing.T) {
+func TestLoginWithPassword_RateLimit_RecordsOnFailure(t *testing.T) {
 	hash, err := security.HashPassword("correct")
 	if err != nil {
 		t.Fatalf("hash: %v", err)
@@ -117,7 +117,7 @@ func TestLoginByPassword_RateLimit_RecordsOnFailure(t *testing.T) {
 		loginRateLimiter: limiter,
 	}
 
-	_, loginErr := svc.LoginByPassword(context.Background(), &identra_v1_pb.LoginByPasswordRequest{
+	_, loginErr := svc.LoginWithPassword(context.Background(), &identra_v1_pb.LoginWithPasswordRequest{
 		Email:    "user@example.com",
 		Password: "wrong-password",
 	})
@@ -131,7 +131,7 @@ func TestLoginByPassword_RateLimit_RecordsOnFailure(t *testing.T) {
 	}
 }
 
-func TestLoginByPassword_RateLimit_RecordsForwardedClientOnFailure(t *testing.T) {
+func TestLoginWithPassword_RateLimit_RecordsForwardedClientOnFailure(t *testing.T) {
 	hash, err := security.HashPassword("correct")
 	if err != nil {
 		t.Fatalf("hash: %v", err)
@@ -153,7 +153,7 @@ func TestLoginByPassword_RateLimit_RecordsForwardedClientOnFailure(t *testing.T)
 		metadata.Pairs("x-forwarded-for", "203.0.113.10, 10.0.0.1"),
 	)
 
-	_, loginErr := svc.LoginByPassword(ctx, &identra_v1_pb.LoginByPasswordRequest{
+	_, loginErr := svc.LoginWithPassword(ctx, &identra_v1_pb.LoginWithPasswordRequest{
 		Email:    "user@example.com",
 		Password: "wrong-password",
 	})
@@ -171,7 +171,7 @@ func TestLoginByPassword_RateLimit_RecordsForwardedClientOnFailure(t *testing.T)
 	t.Fatalf("expected %q in recorded keys, got %#v", wantClientKey, limiter.keys)
 }
 
-func TestLoginByPassword_RateLimit_ResetsOnSuccess(t *testing.T) {
+func TestLoginWithPassword_RateLimit_ResetsOnSuccess(t *testing.T) {
 	hash, err := security.HashPassword("correct")
 	if err != nil {
 		t.Fatalf("hash: %v", err)
@@ -190,7 +190,7 @@ func TestLoginByPassword_RateLimit_ResetsOnSuccess(t *testing.T) {
 		loginRateLimiter: limiter,
 	}
 
-	_, loginErr := svc.LoginByPassword(context.Background(), &identra_v1_pb.LoginByPasswordRequest{
+	_, loginErr := svc.LoginWithPassword(context.Background(), &identra_v1_pb.LoginWithPasswordRequest{
 		Email:    "user@example.com",
 		Password: "correct",
 	})
@@ -206,9 +206,9 @@ func TestLoginByPassword_RateLimit_ResetsOnSuccess(t *testing.T) {
 	}
 }
 
-// ---- LoginByEmailCode rate-limit tests ----
+// ---- LoginWithEmailCode rate-limit tests ----
 
-func TestLoginByEmailCode_RateLimit_BlocksWhenLimitExceeded(t *testing.T) {
+func TestLoginWithEmailCode_RateLimit_BlocksWhenLimitExceeded(t *testing.T) {
 	emailStore := newMockEmailCodeStore()
 	_ = emailStore.Set(context.Background(), "user@example.com", "123456")
 
@@ -218,14 +218,14 @@ func TestLoginByEmailCode_RateLimit_BlocksWhenLimitExceeded(t *testing.T) {
 		loginRateLimiter: newMockRateLimiter(false),
 	}
 
-	_, err := svc.LoginByEmailCode(context.Background(), &identra_v1_pb.LoginByEmailCodeRequest{
+	_, err := svc.LoginWithEmailCode(context.Background(), &identra_v1_pb.LoginWithEmailCodeRequest{
 		Email: "user@example.com",
 		Code:  "123456",
 	})
 	requireCode(t, err, codes.ResourceExhausted)
 }
 
-func TestLoginByEmailCode_RateLimit_RecordsOnFailure(t *testing.T) {
+func TestLoginWithEmailCode_RateLimit_RecordsOnFailure(t *testing.T) {
 	emailStore := newMockEmailCodeStore()
 	_ = emailStore.Set(context.Background(), "user@example.com", "123456")
 
@@ -236,7 +236,7 @@ func TestLoginByEmailCode_RateLimit_RecordsOnFailure(t *testing.T) {
 		loginRateLimiter: limiter,
 	}
 
-	_, err := svc.LoginByEmailCode(context.Background(), &identra_v1_pb.LoginByEmailCodeRequest{
+	_, err := svc.LoginWithEmailCode(context.Background(), &identra_v1_pb.LoginWithEmailCodeRequest{
 		Email: "user@example.com",
 		Code:  "wrong",
 	})
@@ -250,7 +250,7 @@ func TestLoginByEmailCode_RateLimit_RecordsOnFailure(t *testing.T) {
 	}
 }
 
-func TestLoginByEmailCode_RateLimit_ResetsOnSuccess(t *testing.T) {
+func TestLoginWithEmailCode_RateLimit_ResetsOnSuccess(t *testing.T) {
 	emailStore := newMockEmailCodeStore()
 	_ = emailStore.Set(context.Background(), "user@example.com", "123456")
 
@@ -262,7 +262,7 @@ func TestLoginByEmailCode_RateLimit_ResetsOnSuccess(t *testing.T) {
 		loginRateLimiter: limiter,
 	}
 
-	_, err := svc.LoginByEmailCode(context.Background(), &identra_v1_pb.LoginByEmailCodeRequest{
+	_, err := svc.LoginWithEmailCode(context.Background(), &identra_v1_pb.LoginWithEmailCodeRequest{
 		Email: "user@example.com",
 		Code:  "123456",
 	})
@@ -278,22 +278,22 @@ func TestLoginByEmailCode_RateLimit_ResetsOnSuccess(t *testing.T) {
 	}
 }
 
-// ---- SendLoginEmailCode rate-limit tests ----
+// ---- RequestEmailLoginCode rate-limit tests ----
 
-func TestSendLoginEmailCode_RateLimit_BlocksWhenLimitExceeded(t *testing.T) {
+func TestRequestEmailLoginCode_RateLimit_BlocksWhenLimitExceeded(t *testing.T) {
 	svc := &Service{
 		mailer:              &fakeMailer{},
 		emailCodeStore:      newMockEmailCodeStore(),
 		sendCodeRateLimiter: newMockRateLimiter(false),
 	}
 
-	_, err := svc.SendLoginEmailCode(context.Background(), &identra_v1_pb.SendLoginEmailCodeRequest{
+	_, err := svc.RequestEmailLoginCode(context.Background(), &identra_v1_pb.RequestEmailLoginCodeRequest{
 		Email: "user@example.com",
 	})
 	requireCode(t, err, codes.ResourceExhausted)
 }
 
-func TestSendLoginEmailCode_RateLimit_RecordsOnAllowed(t *testing.T) {
+func TestRequestEmailLoginCode_RateLimit_RecordsOnAllowed(t *testing.T) {
 	limiter := newMockRateLimiter(true)
 	svc := &Service{
 		mailer:              &fakeMailer{},
@@ -301,7 +301,7 @@ func TestSendLoginEmailCode_RateLimit_RecordsOnAllowed(t *testing.T) {
 		sendCodeRateLimiter: limiter,
 	}
 
-	_, err := svc.SendLoginEmailCode(context.Background(), &identra_v1_pb.SendLoginEmailCodeRequest{
+	_, err := svc.RequestEmailLoginCode(context.Background(), &identra_v1_pb.RequestEmailLoginCodeRequest{
 		Email: "user@example.com",
 	})
 	if err != nil {

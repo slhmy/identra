@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package identra.v1;
+
+import "identra/v1/types.proto";
+
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
+
+service KeyService {
+  rpc ListSigningKeys(ListSigningKeysRequest) returns (ListSigningKeysResponse);
+}
+
+message ListSigningKeysRequest {}
+
+message ListSigningKeysResponse {
+  repeated SigningKey keys = 1;
+}

@@ -9,6 +9,7 @@ package identra_v1_pb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,13 +22,152 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Token contains a JWT value and its Unix expiration time.
+type AuthProvider int32
+
+const (
+	AuthProvider_AUTH_PROVIDER_UNSPECIFIED AuthProvider = 0
+	AuthProvider_AUTH_PROVIDER_GITHUB      AuthProvider = 1
+)
+
+// Enum value maps for AuthProvider.
+var (
+	AuthProvider_name = map[int32]string{
+		0: "AUTH_PROVIDER_UNSPECIFIED",
+		1: "AUTH_PROVIDER_GITHUB",
+	}
+	AuthProvider_value = map[string]int32{
+		"AUTH_PROVIDER_UNSPECIFIED": 0,
+		"AUTH_PROVIDER_GITHUB":      1,
+	}
+)
+
+func (x AuthProvider) Enum() *AuthProvider {
+	p := new(AuthProvider)
+	*p = x
+	return p
+}
+
+func (x AuthProvider) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AuthProvider) Descriptor() protoreflect.EnumDescriptor {
+	return file_identra_v1_types_proto_enumTypes[0].Descriptor()
+}
+
+func (AuthProvider) Type() protoreflect.EnumType {
+	return &file_identra_v1_types_proto_enumTypes[0]
+}
+
+func (x AuthProvider) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AuthProvider.Descriptor instead.
+func (AuthProvider) EnumDescriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{0}
+}
+
+type AuthProviderUnavailableReason int32
+
+const (
+	AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_UNSPECIFIED           AuthProviderUnavailableReason = 0
+	AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_ID     AuthProviderUnavailableReason = 1
+	AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_SECRET AuthProviderUnavailableReason = 2
+)
+
+// Enum value maps for AuthProviderUnavailableReason.
+var (
+	AuthProviderUnavailableReason_name = map[int32]string{
+		0: "AUTH_PROVIDER_UNAVAILABLE_REASON_UNSPECIFIED",
+		1: "AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_ID",
+		2: "AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_SECRET",
+	}
+	AuthProviderUnavailableReason_value = map[string]int32{
+		"AUTH_PROVIDER_UNAVAILABLE_REASON_UNSPECIFIED":           0,
+		"AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_ID":     1,
+		"AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_SECRET": 2,
+	}
+)
+
+func (x AuthProviderUnavailableReason) Enum() *AuthProviderUnavailableReason {
+	p := new(AuthProviderUnavailableReason)
+	*p = x
+	return p
+}
+
+func (x AuthProviderUnavailableReason) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AuthProviderUnavailableReason) Descriptor() protoreflect.EnumDescriptor {
+	return file_identra_v1_types_proto_enumTypes[1].Descriptor()
+}
+
+func (AuthProviderUnavailableReason) Type() protoreflect.EnumType {
+	return &file_identra_v1_types_proto_enumTypes[1]
+}
+
+func (x AuthProviderUnavailableReason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AuthProviderUnavailableReason.Descriptor instead.
+func (AuthProviderUnavailableReason) EnumDescriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{1}
+}
+
+type SigningAlgorithm int32
+
+const (
+	SigningAlgorithm_SIGNING_ALGORITHM_UNSPECIFIED SigningAlgorithm = 0
+	SigningAlgorithm_SIGNING_ALGORITHM_RS256       SigningAlgorithm = 1
+)
+
+// Enum value maps for SigningAlgorithm.
+var (
+	SigningAlgorithm_name = map[int32]string{
+		0: "SIGNING_ALGORITHM_UNSPECIFIED",
+		1: "SIGNING_ALGORITHM_RS256",
+	}
+	SigningAlgorithm_value = map[string]int32{
+		"SIGNING_ALGORITHM_UNSPECIFIED": 0,
+		"SIGNING_ALGORITHM_RS256":       1,
+	}
+)
+
+func (x SigningAlgorithm) Enum() *SigningAlgorithm {
+	p := new(SigningAlgorithm)
+	*p = x
+	return p
+}
+
+func (x SigningAlgorithm) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SigningAlgorithm) Descriptor() protoreflect.EnumDescriptor {
+	return file_identra_v1_types_proto_enumTypes[2].Descriptor()
+}
+
+func (SigningAlgorithm) Type() protoreflect.EnumType {
+	return &file_identra_v1_types_proto_enumTypes[2]
+}
+
+func (x SigningAlgorithm) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SigningAlgorithm.Descriptor instead.
+func (SigningAlgorithm) EnumDescriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{2}
+}
+
+// Token is a signed bearer token and its expiration time.
 type Token struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Signed JWT string.
-	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	// Expiration time as a Unix timestamp (seconds since epoch).
-	ExpiresAt     int64 `protobuf:"varint,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Value         string                 `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -62,29 +202,25 @@ func (*Token) Descriptor() ([]byte, []int) {
 	return file_identra_v1_types_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Token) GetToken() string {
+func (x *Token) GetValue() string {
 	if x != nil {
-		return x.Token
+		return x.Value
 	}
 	return ""
 }
 
-func (x *Token) GetExpiresAt() int64 {
+func (x *Token) GetExpiresAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.ExpiresAt
 	}
-	return 0
+	return nil
 }
 
-// TokenPair contains both access and refresh tokens following JWKS standards
+// TokenPair contains the credentials issued for an authenticated session.
 type TokenPair struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Short-lived access token for API authentication (typically 15 minutes)
-	AccessToken *Token `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	// Long-lived refresh token for obtaining new access tokens (typically 7 days)
-	RefreshToken *Token `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	// Token type, typically "Bearer"
-	TokenType     string `protobuf:"bytes,3,opt,name=token_type,json=tokenType,proto3" json:"token_type,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   *Token                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken  *Token                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -133,52 +269,29 @@ func (x *TokenPair) GetRefreshToken() *Token {
 	return nil
 }
 
-func (x *TokenPair) GetTokenType() string {
-	if x != nil {
-		return x.TokenType
-	}
-	return ""
+type AuthProviderStatus struct {
+	state             protoimpl.MessageState        `protogen:"open.v1"`
+	Provider          AuthProvider                  `protobuf:"varint,1,opt,name=provider,proto3,enum=identra.v1.AuthProvider" json:"provider,omitempty"`
+	Enabled           bool                          `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	UnavailableReason AuthProviderUnavailableReason `protobuf:"varint,3,opt,name=unavailable_reason,json=unavailableReason,proto3,enum=identra.v1.AuthProviderUnavailableReason" json:"unavailable_reason,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
-// JSON Web Key represents a single key in the JWKS
-type JSONWebKey struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Key type (e.g., "RSA", "EC")
-	Kty string `protobuf:"bytes,1,opt,name=kty,proto3" json:"kty,omitempty"`
-	// Algorithm (e.g., "RS256", "ES256")
-	Alg string `protobuf:"bytes,2,opt,name=alg,proto3" json:"alg,omitempty"`
-	// Key usage (e.g., "sig" for signature)
-	Use string `protobuf:"bytes,3,opt,name=use,proto3" json:"use,omitempty"`
-	// Key ID
-	Kid string `protobuf:"bytes,4,opt,name=kid,proto3" json:"kid,omitempty"`
-	// RSA modulus (Base64URL encoded, for RSA keys)
-	N *string `protobuf:"bytes,5,opt,name=n,proto3,oneof" json:"n,omitempty"`
-	// RSA exponent (Base64URL encoded, for RSA keys)
-	E *string `protobuf:"bytes,6,opt,name=e,proto3,oneof" json:"e,omitempty"`
-	// EC curve name (for EC keys)
-	Crv *string `protobuf:"bytes,7,opt,name=crv,proto3,oneof" json:"crv,omitempty"`
-	// EC x coordinate (Base64URL encoded, for EC keys)
-	X *string `protobuf:"bytes,8,opt,name=x,proto3,oneof" json:"x,omitempty"`
-	// EC y coordinate (Base64URL encoded, for EC keys)
-	Y             *string `protobuf:"bytes,9,opt,name=y,proto3,oneof" json:"y,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *JSONWebKey) Reset() {
-	*x = JSONWebKey{}
+func (x *AuthProviderStatus) Reset() {
+	*x = AuthProviderStatus{}
 	mi := &file_identra_v1_types_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *JSONWebKey) String() string {
+func (x *AuthProviderStatus) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*JSONWebKey) ProtoMessage() {}
+func (*AuthProviderStatus) ProtoMessage() {}
 
-func (x *JSONWebKey) ProtoReflect() protoreflect.Message {
+func (x *AuthProviderStatus) ProtoReflect() protoreflect.Message {
 	mi := &file_identra_v1_types_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -190,1232 +303,56 @@ func (x *JSONWebKey) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use JSONWebKey.ProtoReflect.Descriptor instead.
-func (*JSONWebKey) Descriptor() ([]byte, []int) {
+// Deprecated: Use AuthProviderStatus.ProtoReflect.Descriptor instead.
+func (*AuthProviderStatus) Descriptor() ([]byte, []int) {
 	return file_identra_v1_types_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *JSONWebKey) GetKty() string {
-	if x != nil {
-		return x.Kty
-	}
-	return ""
-}
-
-func (x *JSONWebKey) GetAlg() string {
-	if x != nil {
-		return x.Alg
-	}
-	return ""
-}
-
-func (x *JSONWebKey) GetUse() string {
-	if x != nil {
-		return x.Use
-	}
-	return ""
-}
-
-func (x *JSONWebKey) GetKid() string {
-	if x != nil {
-		return x.Kid
-	}
-	return ""
-}
-
-func (x *JSONWebKey) GetN() string {
-	if x != nil && x.N != nil {
-		return *x.N
-	}
-	return ""
-}
-
-func (x *JSONWebKey) GetE() string {
-	if x != nil && x.E != nil {
-		return *x.E
-	}
-	return ""
-}
-
-func (x *JSONWebKey) GetCrv() string {
-	if x != nil && x.Crv != nil {
-		return *x.Crv
-	}
-	return ""
-}
-
-func (x *JSONWebKey) GetX() string {
-	if x != nil && x.X != nil {
-		return *x.X
-	}
-	return ""
-}
-
-func (x *JSONWebKey) GetY() string {
-	if x != nil && x.Y != nil {
-		return *x.Y
-	}
-	return ""
-}
-
-type GetJWKSRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetJWKSRequest) Reset() {
-	*x = GetJWKSRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetJWKSRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetJWKSRequest) ProtoMessage() {}
-
-func (x *GetJWKSRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetJWKSRequest.ProtoReflect.Descriptor instead.
-func (*GetJWKSRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{3}
-}
-
-type GetJWKSResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// List of JSON Web Keys
-	Keys          []*JSONWebKey `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetJWKSResponse) Reset() {
-	*x = GetJWKSResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetJWKSResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetJWKSResponse) ProtoMessage() {}
-
-func (x *GetJWKSResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetJWKSResponse.ProtoReflect.Descriptor instead.
-func (*GetJWKSResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *GetJWKSResponse) GetKeys() []*JSONWebKey {
-	if x != nil {
-		return x.Keys
-	}
-	return nil
-}
-
-type GetOAuthAuthorizationURLRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
-	RedirectUrl   *string                `protobuf:"bytes,2,opt,name=redirect_url,json=redirectUrl,proto3,oneof" json:"redirect_url,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetOAuthAuthorizationURLRequest) Reset() {
-	*x = GetOAuthAuthorizationURLRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetOAuthAuthorizationURLRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetOAuthAuthorizationURLRequest) ProtoMessage() {}
-
-func (x *GetOAuthAuthorizationURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetOAuthAuthorizationURLRequest.ProtoReflect.Descriptor instead.
-func (*GetOAuthAuthorizationURLRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *GetOAuthAuthorizationURLRequest) GetProvider() string {
+func (x *AuthProviderStatus) GetProvider() AuthProvider {
 	if x != nil {
 		return x.Provider
 	}
-	return ""
+	return AuthProvider_AUTH_PROVIDER_UNSPECIFIED
 }
 
-func (x *GetOAuthAuthorizationURLRequest) GetRedirectUrl() string {
-	if x != nil && x.RedirectUrl != nil {
-		return *x.RedirectUrl
-	}
-	return ""
-}
-
-type GetOAuthAuthorizationURLResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Url           string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
-	State         string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetOAuthAuthorizationURLResponse) Reset() {
-	*x = GetOAuthAuthorizationURLResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetOAuthAuthorizationURLResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetOAuthAuthorizationURLResponse) ProtoMessage() {}
-
-func (x *GetOAuthAuthorizationURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetOAuthAuthorizationURLResponse.ProtoReflect.Descriptor instead.
-func (*GetOAuthAuthorizationURLResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *GetOAuthAuthorizationURLResponse) GetUrl() string {
-	if x != nil {
-		return x.Url
-	}
-	return ""
-}
-
-func (x *GetOAuthAuthorizationURLResponse) GetState() string {
-	if x != nil {
-		return x.State
-	}
-	return ""
-}
-
-type LoginByOAuthRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	State         string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LoginByOAuthRequest) Reset() {
-	*x = LoginByOAuthRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LoginByOAuthRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LoginByOAuthRequest) ProtoMessage() {}
-
-func (x *LoginByOAuthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LoginByOAuthRequest.ProtoReflect.Descriptor instead.
-func (*LoginByOAuthRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *LoginByOAuthRequest) GetCode() string {
-	if x != nil {
-		return x.Code
-	}
-	return ""
-}
-
-func (x *LoginByOAuthRequest) GetState() string {
-	if x != nil {
-		return x.State
-	}
-	return ""
-}
-
-type LoginByOAuthResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Token *TokenPair             `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	// Username from the OAuth provider (e.g., GitHub login name)
-	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	// Avatar URL from the OAuth provider
-	AvatarUrl string `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	// Email from the OAuth provider (if available)
-	Email         string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LoginByOAuthResponse) Reset() {
-	*x = LoginByOAuthResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LoginByOAuthResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LoginByOAuthResponse) ProtoMessage() {}
-
-func (x *LoginByOAuthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LoginByOAuthResponse.ProtoReflect.Descriptor instead.
-func (*LoginByOAuthResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *LoginByOAuthResponse) GetToken() *TokenPair {
-	if x != nil {
-		return x.Token
-	}
-	return nil
-}
-
-func (x *LoginByOAuthResponse) GetUsername() string {
-	if x != nil {
-		return x.Username
-	}
-	return ""
-}
-
-func (x *LoginByOAuthResponse) GetAvatarUrl() string {
-	if x != nil {
-		return x.AvatarUrl
-	}
-	return ""
-}
-
-func (x *LoginByOAuthResponse) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-type BindUserByOAuthRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Access token for the currently authenticated user
-	AccessToken string `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	// OAuth authorization code received from the provider
-	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	// OAuth state to validate the flow
-	State         string `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BindUserByOAuthRequest) Reset() {
-	*x = BindUserByOAuthRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BindUserByOAuthRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BindUserByOAuthRequest) ProtoMessage() {}
-
-func (x *BindUserByOAuthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BindUserByOAuthRequest.ProtoReflect.Descriptor instead.
-func (*BindUserByOAuthRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *BindUserByOAuthRequest) GetAccessToken() string {
-	if x != nil {
-		return x.AccessToken
-	}
-	return ""
-}
-
-func (x *BindUserByOAuthRequest) GetCode() string {
-	if x != nil {
-		return x.Code
-	}
-	return ""
-}
-
-func (x *BindUserByOAuthRequest) GetState() string {
-	if x != nil {
-		return x.State
-	}
-	return ""
-}
-
-type BindUserByOAuthResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Updated token pair after binding completes
-	Token *TokenPair `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	// Username from the OAuth provider (e.g., GitHub login name)
-	Username string `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	// Avatar URL from the OAuth provider
-	AvatarUrl     string `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BindUserByOAuthResponse) Reset() {
-	*x = BindUserByOAuthResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BindUserByOAuthResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BindUserByOAuthResponse) ProtoMessage() {}
-
-func (x *BindUserByOAuthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BindUserByOAuthResponse.ProtoReflect.Descriptor instead.
-func (*BindUserByOAuthResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *BindUserByOAuthResponse) GetToken() *TokenPair {
-	if x != nil {
-		return x.Token
-	}
-	return nil
-}
-
-func (x *BindUserByOAuthResponse) GetUsername() string {
-	if x != nil {
-		return x.Username
-	}
-	return ""
-}
-
-func (x *BindUserByOAuthResponse) GetAvatarUrl() string {
-	if x != nil {
-		return x.AvatarUrl
-	}
-	return ""
-}
-
-type SendLoginEmailCodeRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Email string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	// When true, send the email using HTML template; otherwise plain text
-	UseHtml       bool `protobuf:"varint,2,opt,name=use_html,json=useHtml,proto3" json:"use_html,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SendLoginEmailCodeRequest) Reset() {
-	*x = SendLoginEmailCodeRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SendLoginEmailCodeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SendLoginEmailCodeRequest) ProtoMessage() {}
-
-func (x *SendLoginEmailCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SendLoginEmailCodeRequest.ProtoReflect.Descriptor instead.
-func (*SendLoginEmailCodeRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *SendLoginEmailCodeRequest) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-func (x *SendLoginEmailCodeRequest) GetUseHtml() bool {
-	if x != nil {
-		return x.UseHtml
-	}
-	return false
-}
-
-type SendLoginEmailCodeResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SendLoginEmailCodeResponse) Reset() {
-	*x = SendLoginEmailCodeResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SendLoginEmailCodeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SendLoginEmailCodeResponse) ProtoMessage() {}
-
-func (x *SendLoginEmailCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SendLoginEmailCodeResponse.ProtoReflect.Descriptor instead.
-func (*SendLoginEmailCodeResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{12}
-}
-
-type LoginByEmailCodeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LoginByEmailCodeRequest) Reset() {
-	*x = LoginByEmailCodeRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LoginByEmailCodeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LoginByEmailCodeRequest) ProtoMessage() {}
-
-func (x *LoginByEmailCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LoginByEmailCodeRequest.ProtoReflect.Descriptor instead.
-func (*LoginByEmailCodeRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *LoginByEmailCodeRequest) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-func (x *LoginByEmailCodeRequest) GetCode() string {
-	if x != nil {
-		return x.Code
-	}
-	return ""
-}
-
-type LoginByEmailCodeResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         *TokenPair             `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LoginByEmailCodeResponse) Reset() {
-	*x = LoginByEmailCodeResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LoginByEmailCodeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LoginByEmailCodeResponse) ProtoMessage() {}
-
-func (x *LoginByEmailCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LoginByEmailCodeResponse.ProtoReflect.Descriptor instead.
-func (*LoginByEmailCodeResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *LoginByEmailCodeResponse) GetToken() *TokenPair {
-	if x != nil {
-		return x.Token
-	}
-	return nil
-}
-
-type RegisterByPasswordRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RegisterByPasswordRequest) Reset() {
-	*x = RegisterByPasswordRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RegisterByPasswordRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RegisterByPasswordRequest) ProtoMessage() {}
-
-func (x *RegisterByPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RegisterByPasswordRequest.ProtoReflect.Descriptor instead.
-func (*RegisterByPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *RegisterByPasswordRequest) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-func (x *RegisterByPasswordRequest) GetPassword() string {
-	if x != nil {
-		return x.Password
-	}
-	return ""
-}
-
-type RegisterByPasswordResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         *TokenPair             `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RegisterByPasswordResponse) Reset() {
-	*x = RegisterByPasswordResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RegisterByPasswordResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RegisterByPasswordResponse) ProtoMessage() {}
-
-func (x *RegisterByPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RegisterByPasswordResponse.ProtoReflect.Descriptor instead.
-func (*RegisterByPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *RegisterByPasswordResponse) GetToken() *TokenPair {
-	if x != nil {
-		return x.Token
-	}
-	return nil
-}
-
-type LoginByPasswordRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LoginByPasswordRequest) Reset() {
-	*x = LoginByPasswordRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[17]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LoginByPasswordRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LoginByPasswordRequest) ProtoMessage() {}
-
-func (x *LoginByPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[17]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LoginByPasswordRequest.ProtoReflect.Descriptor instead.
-func (*LoginByPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *LoginByPasswordRequest) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
-func (x *LoginByPasswordRequest) GetPassword() string {
-	if x != nil {
-		return x.Password
-	}
-	return ""
-}
-
-type LoginByPasswordResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         *TokenPair             `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *LoginByPasswordResponse) Reset() {
-	*x = LoginByPasswordResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[18]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LoginByPasswordResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LoginByPasswordResponse) ProtoMessage() {}
-
-func (x *LoginByPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[18]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LoginByPasswordResponse.ProtoReflect.Descriptor instead.
-func (*LoginByPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{18}
-}
-
-func (x *LoginByPasswordResponse) GetToken() *TokenPair {
-	if x != nil {
-		return x.Token
-	}
-	return nil
-}
-
-type RefreshTokenRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RefreshTokenRequest) Reset() {
-	*x = RefreshTokenRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[19]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RefreshTokenRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RefreshTokenRequest) ProtoMessage() {}
-
-func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[19]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RefreshTokenRequest.ProtoReflect.Descriptor instead.
-func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{19}
-}
-
-func (x *RefreshTokenRequest) GetRefreshToken() string {
-	if x != nil {
-		return x.RefreshToken
-	}
-	return ""
-}
-
-type RefreshTokenResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         *TokenPair             `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RefreshTokenResponse) Reset() {
-	*x = RefreshTokenResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[20]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RefreshTokenResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RefreshTokenResponse) ProtoMessage() {}
-
-func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[20]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RefreshTokenResponse.ProtoReflect.Descriptor instead.
-func (*RefreshTokenResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{20}
-}
-
-func (x *RefreshTokenResponse) GetToken() *TokenPair {
-	if x != nil {
-		return x.Token
-	}
-	return nil
-}
-
-type RevokeRefreshTokenRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RevokeRefreshTokenRequest) Reset() {
-	*x = RevokeRefreshTokenRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[21]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RevokeRefreshTokenRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RevokeRefreshTokenRequest) ProtoMessage() {}
-
-func (x *RevokeRefreshTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[21]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RevokeRefreshTokenRequest.ProtoReflect.Descriptor instead.
-func (*RevokeRefreshTokenRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *RevokeRefreshTokenRequest) GetRefreshToken() string {
-	if x != nil {
-		return x.RefreshToken
-	}
-	return ""
-}
-
-type RevokeRefreshTokenResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RevokeRefreshTokenResponse) Reset() {
-	*x = RevokeRefreshTokenResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[22]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RevokeRefreshTokenResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RevokeRefreshTokenResponse) ProtoMessage() {}
-
-func (x *RevokeRefreshTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[22]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RevokeRefreshTokenResponse.ProtoReflect.Descriptor instead.
-func (*RevokeRefreshTokenResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{22}
-}
-
-// OAuthConnection describes one OAuth identity linked to the user.
-type OAuthConnection struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Provider name, e.g. "github".
-	Provider string `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
-	// Provider user identifier, e.g. GitHub numeric ID as string.
-	ProviderUserId string `protobuf:"bytes,2,opt,name=provider_user_id,json=providerUserId,proto3" json:"provider_user_id,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *OAuthConnection) Reset() {
-	*x = OAuthConnection{}
-	mi := &file_identra_v1_types_proto_msgTypes[23]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OAuthConnection) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OAuthConnection) ProtoMessage() {}
-
-func (x *OAuthConnection) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[23]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OAuthConnection.ProtoReflect.Descriptor instead.
-func (*OAuthConnection) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{23}
-}
-
-func (x *OAuthConnection) GetProvider() string {
-	if x != nil {
-		return x.Provider
-	}
-	return ""
-}
-
-func (x *OAuthConnection) GetProviderUserId() string {
-	if x != nil {
-		return x.ProviderUserId
-	}
-	return ""
-}
-
-type ListOAuthProvidersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListOAuthProvidersRequest) Reset() {
-	*x = ListOAuthProvidersRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[24]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListOAuthProvidersRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListOAuthProvidersRequest) ProtoMessage() {}
-
-func (x *ListOAuthProvidersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[24]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListOAuthProvidersRequest.ProtoReflect.Descriptor instead.
-func (*ListOAuthProvidersRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{24}
-}
-
-// OAuthProviderStatus describes whether a single OAuth provider is available.
-type OAuthProviderStatus struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Provider name, e.g. "github".
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Whether the provider is fully configured and ready for use.
-	Enabled bool `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	// Machine-readable reason when the provider is disabled,
-	// e.g. "missing_client_id", "missing_client_secret".
-	Reason        *string `protobuf:"bytes,3,opt,name=reason,proto3,oneof" json:"reason,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OAuthProviderStatus) Reset() {
-	*x = OAuthProviderStatus{}
-	mi := &file_identra_v1_types_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OAuthProviderStatus) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OAuthProviderStatus) ProtoMessage() {}
-
-func (x *OAuthProviderStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OAuthProviderStatus.ProtoReflect.Descriptor instead.
-func (*OAuthProviderStatus) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *OAuthProviderStatus) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *OAuthProviderStatus) GetEnabled() bool {
+func (x *AuthProviderStatus) GetEnabled() bool {
 	if x != nil {
 		return x.Enabled
 	}
 	return false
 }
 
-func (x *OAuthProviderStatus) GetReason() string {
-	if x != nil && x.Reason != nil {
-		return *x.Reason
+func (x *AuthProviderStatus) GetUnavailableReason() AuthProviderUnavailableReason {
+	if x != nil {
+		return x.UnavailableReason
 	}
-	return ""
+	return AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_UNSPECIFIED
 }
 
-type ListOAuthProvidersResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// All supported OAuth providers with their availability status.
-	Providers     []*OAuthProviderStatus `protobuf:"bytes,1,rep,name=providers,proto3" json:"providers,omitempty"`
+type OAuthUserProfile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	AvatarUrl     string                 `protobuf:"bytes,2,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListOAuthProvidersResponse) Reset() {
-	*x = ListOAuthProvidersResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[26]
+func (x *OAuthUserProfile) Reset() {
+	*x = OAuthUserProfile{}
+	mi := &file_identra_v1_types_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListOAuthProvidersResponse) String() string {
+func (x *OAuthUserProfile) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListOAuthProvidersResponse) ProtoMessage() {}
+func (*OAuthUserProfile) ProtoMessage() {}
 
-func (x *ListOAuthProvidersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[26]
+func (x *OAuthUserProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_identra_v1_types_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1426,249 +363,336 @@ func (x *ListOAuthProvidersResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListOAuthProvidersResponse.ProtoReflect.Descriptor instead.
-func (*ListOAuthProvidersResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{26}
+// Deprecated: Use OAuthUserProfile.ProtoReflect.Descriptor instead.
+func (*OAuthUserProfile) Descriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ListOAuthProvidersResponse) GetProviders() []*OAuthProviderStatus {
+func (x *OAuthUserProfile) GetUsername() string {
 	if x != nil {
-		return x.Providers
-	}
-	return nil
-}
-
-type GetCurrentUserLoginInfoRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Deprecated: prefer Authorization: Bearer <access_token>.
-	AccessToken   string `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetCurrentUserLoginInfoRequest) Reset() {
-	*x = GetCurrentUserLoginInfoRequest{}
-	mi := &file_identra_v1_types_proto_msgTypes[27]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCurrentUserLoginInfoRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCurrentUserLoginInfoRequest) ProtoMessage() {}
-
-func (x *GetCurrentUserLoginInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[27]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCurrentUserLoginInfoRequest.ProtoReflect.Descriptor instead.
-func (*GetCurrentUserLoginInfoRequest) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{27}
-}
-
-func (x *GetCurrentUserLoginInfoRequest) GetAccessToken() string {
-	if x != nil {
-		return x.AccessToken
+		return x.Username
 	}
 	return ""
 }
 
-type GetCurrentUserLoginInfoResponse struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	UserId string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	// User's primary email (also used for email-code login).
-	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	// When present, indicates a GitHub account is linked.
-	GithubId *string `protobuf:"bytes,3,opt,name=github_id,json=githubId,proto3,oneof" json:"github_id,omitempty"`
-	// Whether the user has a password set (email+password login).
-	PasswordEnabled bool `protobuf:"varint,4,opt,name=password_enabled,json=passwordEnabled,proto3" json:"password_enabled,omitempty"`
-	// Linked OAuth identities (extensible for more providers in future).
-	OauthConnections []*OAuthConnection `protobuf:"bytes,5,rep,name=oauth_connections,json=oauthConnections,proto3" json:"oauth_connections,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *GetCurrentUserLoginInfoResponse) Reset() {
-	*x = GetCurrentUserLoginInfoResponse{}
-	mi := &file_identra_v1_types_proto_msgTypes[28]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetCurrentUserLoginInfoResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetCurrentUserLoginInfoResponse) ProtoMessage() {}
-
-func (x *GetCurrentUserLoginInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identra_v1_types_proto_msgTypes[28]
+func (x *OAuthUserProfile) GetAvatarUrl() string {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetCurrentUserLoginInfoResponse.ProtoReflect.Descriptor instead.
-func (*GetCurrentUserLoginInfoResponse) Descriptor() ([]byte, []int) {
-	return file_identra_v1_types_proto_rawDescGZIP(), []int{28}
-}
-
-func (x *GetCurrentUserLoginInfoResponse) GetUserId() string {
-	if x != nil {
-		return x.UserId
+		return x.AvatarUrl
 	}
 	return ""
 }
 
-func (x *GetCurrentUserLoginInfoResponse) GetEmail() string {
+func (x *OAuthUserProfile) GetEmail() string {
 	if x != nil {
 		return x.Email
 	}
 	return ""
 }
 
-func (x *GetCurrentUserLoginInfoResponse) GetGithubId() string {
-	if x != nil && x.GithubId != nil {
-		return *x.GithubId
+type LinkedOAuthAccount struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Provider       AuthProvider           `protobuf:"varint,1,opt,name=provider,proto3,enum=identra.v1.AuthProvider" json:"provider,omitempty"`
+	ProviderUserId string                 `protobuf:"bytes,2,opt,name=provider_user_id,json=providerUserId,proto3" json:"provider_user_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *LinkedOAuthAccount) Reset() {
+	*x = LinkedOAuthAccount{}
+	mi := &file_identra_v1_types_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LinkedOAuthAccount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LinkedOAuthAccount) ProtoMessage() {}
+
+func (x *LinkedOAuthAccount) ProtoReflect() protoreflect.Message {
+	mi := &file_identra_v1_types_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LinkedOAuthAccount.ProtoReflect.Descriptor instead.
+func (*LinkedOAuthAccount) Descriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LinkedOAuthAccount) GetProvider() AuthProvider {
+	if x != nil {
+		return x.Provider
+	}
+	return AuthProvider_AUTH_PROVIDER_UNSPECIFIED
+}
+
+func (x *LinkedOAuthAccount) GetProviderUserId() string {
+	if x != nil {
+		return x.ProviderUserId
 	}
 	return ""
 }
 
-func (x *GetCurrentUserLoginInfoResponse) GetPasswordEnabled() bool {
+type User struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email                string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	PasswordLoginEnabled bool                   `protobuf:"varint,3,opt,name=password_login_enabled,json=passwordLoginEnabled,proto3" json:"password_login_enabled,omitempty"`
+	LinkedOauthAccounts  []*LinkedOAuthAccount  `protobuf:"bytes,4,rep,name=linked_oauth_accounts,json=linkedOauthAccounts,proto3" json:"linked_oauth_accounts,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *User) Reset() {
+	*x = User{}
+	mi := &file_identra_v1_types_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *User) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*User) ProtoMessage() {}
+
+func (x *User) ProtoReflect() protoreflect.Message {
+	mi := &file_identra_v1_types_proto_msgTypes[5]
 	if x != nil {
-		return x.PasswordEnabled
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use User.ProtoReflect.Descriptor instead.
+func (*User) Descriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *User) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *User) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *User) GetPasswordLoginEnabled() bool {
+	if x != nil {
+		return x.PasswordLoginEnabled
 	}
 	return false
 }
 
-func (x *GetCurrentUserLoginInfoResponse) GetOauthConnections() []*OAuthConnection {
+func (x *User) GetLinkedOauthAccounts() []*LinkedOAuthAccount {
 	if x != nil {
-		return x.OauthConnections
+		return x.LinkedOauthAccounts
 	}
 	return nil
 }
+
+type RsaPublicKey struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Modulus       []byte                 `protobuf:"bytes,1,opt,name=modulus,proto3" json:"modulus,omitempty"`
+	Exponent      uint32                 `protobuf:"varint,2,opt,name=exponent,proto3" json:"exponent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RsaPublicKey) Reset() {
+	*x = RsaPublicKey{}
+	mi := &file_identra_v1_types_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RsaPublicKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RsaPublicKey) ProtoMessage() {}
+
+func (x *RsaPublicKey) ProtoReflect() protoreflect.Message {
+	mi := &file_identra_v1_types_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RsaPublicKey.ProtoReflect.Descriptor instead.
+func (*RsaPublicKey) Descriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RsaPublicKey) GetModulus() []byte {
+	if x != nil {
+		return x.Modulus
+	}
+	return nil
+}
+
+func (x *RsaPublicKey) GetExponent() uint32 {
+	if x != nil {
+		return x.Exponent
+	}
+	return 0
+}
+
+type SigningKey struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	KeyId     string                 `protobuf:"bytes,1,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	Algorithm SigningAlgorithm       `protobuf:"varint,2,opt,name=algorithm,proto3,enum=identra.v1.SigningAlgorithm" json:"algorithm,omitempty"`
+	// Types that are valid to be assigned to PublicKey:
+	//
+	//	*SigningKey_Rsa
+	PublicKey     isSigningKey_PublicKey `protobuf_oneof:"public_key"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SigningKey) Reset() {
+	*x = SigningKey{}
+	mi := &file_identra_v1_types_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SigningKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SigningKey) ProtoMessage() {}
+
+func (x *SigningKey) ProtoReflect() protoreflect.Message {
+	mi := &file_identra_v1_types_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SigningKey.ProtoReflect.Descriptor instead.
+func (*SigningKey) Descriptor() ([]byte, []int) {
+	return file_identra_v1_types_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SigningKey) GetKeyId() string {
+	if x != nil {
+		return x.KeyId
+	}
+	return ""
+}
+
+func (x *SigningKey) GetAlgorithm() SigningAlgorithm {
+	if x != nil {
+		return x.Algorithm
+	}
+	return SigningAlgorithm_SIGNING_ALGORITHM_UNSPECIFIED
+}
+
+func (x *SigningKey) GetPublicKey() isSigningKey_PublicKey {
+	if x != nil {
+		return x.PublicKey
+	}
+	return nil
+}
+
+func (x *SigningKey) GetRsa() *RsaPublicKey {
+	if x != nil {
+		if x, ok := x.PublicKey.(*SigningKey_Rsa); ok {
+			return x.Rsa
+		}
+	}
+	return nil
+}
+
+type isSigningKey_PublicKey interface {
+	isSigningKey_PublicKey()
+}
+
+type SigningKey_Rsa struct {
+	Rsa *RsaPublicKey `protobuf:"bytes,3,opt,name=rsa,proto3,oneof"`
+}
+
+func (*SigningKey_Rsa) isSigningKey_PublicKey() {}
 
 var File_identra_v1_types_proto protoreflect.FileDescriptor
 
 const file_identra_v1_types_proto_rawDesc = "" +
 	"\n" +
 	"\x16identra/v1/types.proto\x12\n" +
-	"identra.v1\"<\n" +
+	"identra.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"X\n" +
 	"\x05Token\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\x12\x1d\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\x129\n" +
 	"\n" +
-	"expires_at\x18\x02 \x01(\x03R\texpiresAt\"\x98\x01\n" +
+	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"y\n" +
 	"\tTokenPair\x124\n" +
 	"\faccess_token\x18\x01 \x01(\v2\x11.identra.v1.TokenR\vaccessToken\x126\n" +
-	"\rrefresh_token\x18\x02 \x01(\v2\x11.identra.v1.TokenR\frefreshToken\x12\x1d\n" +
+	"\rrefresh_token\x18\x02 \x01(\v2\x11.identra.v1.TokenR\frefreshToken\"\xbe\x01\n" +
+	"\x12AuthProviderStatus\x124\n" +
+	"\bprovider\x18\x01 \x01(\x0e2\x18.identra.v1.AuthProviderR\bprovider\x12\x18\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\x12X\n" +
+	"\x12unavailable_reason\x18\x03 \x01(\x0e2).identra.v1.AuthProviderUnavailableReasonR\x11unavailableReason\"c\n" +
+	"\x10OAuthUserProfile\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x1d\n" +
 	"\n" +
-	"token_type\x18\x03 \x01(\tR\ttokenType\"\xd7\x01\n" +
+	"avatar_url\x18\x02 \x01(\tR\tavatarUrl\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\"t\n" +
+	"\x12LinkedOAuthAccount\x124\n" +
+	"\bprovider\x18\x01 \x01(\x0e2\x18.identra.v1.AuthProviderR\bprovider\x12(\n" +
+	"\x10provider_user_id\x18\x02 \x01(\tR\x0eproviderUserId\"\xb6\x01\n" +
+	"\x04User\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x124\n" +
+	"\x16password_login_enabled\x18\x03 \x01(\bR\x14passwordLoginEnabled\x12R\n" +
+	"\x15linked_oauth_accounts\x18\x04 \x03(\v2\x1e.identra.v1.LinkedOAuthAccountR\x13linkedOauthAccounts\"D\n" +
+	"\fRsaPublicKey\x12\x18\n" +
+	"\amodulus\x18\x01 \x01(\fR\amodulus\x12\x1a\n" +
+	"\bexponent\x18\x02 \x01(\rR\bexponent\"\x9b\x01\n" +
 	"\n" +
-	"JSONWebKey\x12\x10\n" +
-	"\x03kty\x18\x01 \x01(\tR\x03kty\x12\x10\n" +
-	"\x03alg\x18\x02 \x01(\tR\x03alg\x12\x10\n" +
-	"\x03use\x18\x03 \x01(\tR\x03use\x12\x10\n" +
-	"\x03kid\x18\x04 \x01(\tR\x03kid\x12\x11\n" +
-	"\x01n\x18\x05 \x01(\tH\x00R\x01n\x88\x01\x01\x12\x11\n" +
-	"\x01e\x18\x06 \x01(\tH\x01R\x01e\x88\x01\x01\x12\x15\n" +
-	"\x03crv\x18\a \x01(\tH\x02R\x03crv\x88\x01\x01\x12\x11\n" +
-	"\x01x\x18\b \x01(\tH\x03R\x01x\x88\x01\x01\x12\x11\n" +
-	"\x01y\x18\t \x01(\tH\x04R\x01y\x88\x01\x01B\x04\n" +
-	"\x02_nB\x04\n" +
-	"\x02_eB\x06\n" +
-	"\x04_crvB\x04\n" +
-	"\x02_xB\x04\n" +
-	"\x02_y\"\x10\n" +
-	"\x0eGetJWKSRequest\"=\n" +
-	"\x0fGetJWKSResponse\x12*\n" +
-	"\x04keys\x18\x01 \x03(\v2\x16.identra.v1.JSONWebKeyR\x04keys\"v\n" +
-	"\x1fGetOAuthAuthorizationURLRequest\x12\x1a\n" +
-	"\bprovider\x18\x01 \x01(\tR\bprovider\x12&\n" +
-	"\fredirect_url\x18\x02 \x01(\tH\x00R\vredirectUrl\x88\x01\x01B\x0f\n" +
-	"\r_redirect_url\"J\n" +
-	" GetOAuthAuthorizationURLResponse\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url\x12\x14\n" +
-	"\x05state\x18\x02 \x01(\tR\x05state\"?\n" +
-	"\x13LoginByOAuthRequest\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12\x14\n" +
-	"\x05state\x18\x02 \x01(\tR\x05state\"\x94\x01\n" +
-	"\x14LoginByOAuthResponse\x12+\n" +
-	"\x05token\x18\x01 \x01(\v2\x15.identra.v1.TokenPairR\x05token\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x1d\n" +
+	"SigningKey\x12\x15\n" +
+	"\x06key_id\x18\x01 \x01(\tR\x05keyId\x12:\n" +
+	"\talgorithm\x18\x02 \x01(\x0e2\x1c.identra.v1.SigningAlgorithmR\talgorithm\x12,\n" +
+	"\x03rsa\x18\x03 \x01(\v2\x18.identra.v1.RsaPublicKeyH\x00R\x03rsaB\f\n" +
 	"\n" +
-	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\x12\x14\n" +
-	"\x05email\x18\x04 \x01(\tR\x05email\"e\n" +
-	"\x16BindUserByOAuthRequest\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\tR\x04code\x12\x14\n" +
-	"\x05state\x18\x03 \x01(\tR\x05state\"\x81\x01\n" +
-	"\x17BindUserByOAuthResponse\x12+\n" +
-	"\x05token\x18\x01 \x01(\v2\x15.identra.v1.TokenPairR\x05token\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x1d\n" +
-	"\n" +
-	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\"L\n" +
-	"\x19SendLoginEmailCodeRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x19\n" +
-	"\buse_html\x18\x02 \x01(\bR\auseHtml\"\x1c\n" +
-	"\x1aSendLoginEmailCodeResponse\"C\n" +
-	"\x17LoginByEmailCodeRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\tR\x04code\"G\n" +
-	"\x18LoginByEmailCodeResponse\x12+\n" +
-	"\x05token\x18\x01 \x01(\v2\x15.identra.v1.TokenPairR\x05token\"M\n" +
-	"\x19RegisterByPasswordRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"I\n" +
-	"\x1aRegisterByPasswordResponse\x12+\n" +
-	"\x05token\x18\x01 \x01(\v2\x15.identra.v1.TokenPairR\x05token\"J\n" +
-	"\x16LoginByPasswordRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"F\n" +
-	"\x17LoginByPasswordResponse\x12+\n" +
-	"\x05token\x18\x01 \x01(\v2\x15.identra.v1.TokenPairR\x05token\":\n" +
-	"\x13RefreshTokenRequest\x12#\n" +
-	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"C\n" +
-	"\x14RefreshTokenResponse\x12+\n" +
-	"\x05token\x18\x01 \x01(\v2\x15.identra.v1.TokenPairR\x05token\"@\n" +
-	"\x19RevokeRefreshTokenRequest\x12#\n" +
-	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\x1c\n" +
-	"\x1aRevokeRefreshTokenResponse\"W\n" +
-	"\x0fOAuthConnection\x12\x1a\n" +
-	"\bprovider\x18\x01 \x01(\tR\bprovider\x12(\n" +
-	"\x10provider_user_id\x18\x02 \x01(\tR\x0eproviderUserId\"\x1b\n" +
-	"\x19ListOAuthProvidersRequest\"k\n" +
-	"\x13OAuthProviderStatus\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aenabled\x18\x02 \x01(\bR\aenabled\x12\x1b\n" +
-	"\x06reason\x18\x03 \x01(\tH\x00R\x06reason\x88\x01\x01B\t\n" +
-	"\a_reason\"[\n" +
-	"\x1aListOAuthProvidersResponse\x12=\n" +
-	"\tproviders\x18\x01 \x03(\v2\x1f.identra.v1.OAuthProviderStatusR\tproviders\"C\n" +
-	"\x1eGetCurrentUserLoginInfoRequest\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\xf5\x01\n" +
-	"\x1fGetCurrentUserLoginInfoResponse\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
-	"\x05email\x18\x02 \x01(\tR\x05email\x12 \n" +
-	"\tgithub_id\x18\x03 \x01(\tH\x00R\bgithubId\x88\x01\x01\x12)\n" +
-	"\x10password_enabled\x18\x04 \x01(\bR\x0fpasswordEnabled\x12H\n" +
-	"\x11oauth_connections\x18\x05 \x03(\v2\x1b.identra.v1.OAuthConnectionR\x10oauthConnectionsB\f\n" +
-	"\n" +
-	"_github_idB:Z8github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pbb\x06proto3"
+	"public_key*G\n" +
+	"\fAuthProvider\x12\x1d\n" +
+	"\x19AUTH_PROVIDER_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14AUTH_PROVIDER_GITHUB\x10\x01*\xc5\x01\n" +
+	"\x1dAuthProviderUnavailableReason\x120\n" +
+	",AUTH_PROVIDER_UNAVAILABLE_REASON_UNSPECIFIED\x10\x00\x126\n" +
+	"2AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_ID\x10\x01\x12:\n" +
+	"6AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_SECRET\x10\x02*R\n" +
+	"\x10SigningAlgorithm\x12!\n" +
+	"\x1dSIGNING_ALGORITHM_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17SIGNING_ALGORITHM_RS256\x10\x01B:Z8github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pbb\x06proto3"
 
 var (
 	file_identra_v1_types_proto_rawDescOnce sync.Once
@@ -1682,55 +706,37 @@ func file_identra_v1_types_proto_rawDescGZIP() []byte {
 	return file_identra_v1_types_proto_rawDescData
 }
 
-var file_identra_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_identra_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_identra_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_identra_v1_types_proto_goTypes = []any{
-	(*Token)(nil),                            // 0: identra.v1.Token
-	(*TokenPair)(nil),                        // 1: identra.v1.TokenPair
-	(*JSONWebKey)(nil),                       // 2: identra.v1.JSONWebKey
-	(*GetJWKSRequest)(nil),                   // 3: identra.v1.GetJWKSRequest
-	(*GetJWKSResponse)(nil),                  // 4: identra.v1.GetJWKSResponse
-	(*GetOAuthAuthorizationURLRequest)(nil),  // 5: identra.v1.GetOAuthAuthorizationURLRequest
-	(*GetOAuthAuthorizationURLResponse)(nil), // 6: identra.v1.GetOAuthAuthorizationURLResponse
-	(*LoginByOAuthRequest)(nil),              // 7: identra.v1.LoginByOAuthRequest
-	(*LoginByOAuthResponse)(nil),             // 8: identra.v1.LoginByOAuthResponse
-	(*BindUserByOAuthRequest)(nil),           // 9: identra.v1.BindUserByOAuthRequest
-	(*BindUserByOAuthResponse)(nil),          // 10: identra.v1.BindUserByOAuthResponse
-	(*SendLoginEmailCodeRequest)(nil),        // 11: identra.v1.SendLoginEmailCodeRequest
-	(*SendLoginEmailCodeResponse)(nil),       // 12: identra.v1.SendLoginEmailCodeResponse
-	(*LoginByEmailCodeRequest)(nil),          // 13: identra.v1.LoginByEmailCodeRequest
-	(*LoginByEmailCodeResponse)(nil),         // 14: identra.v1.LoginByEmailCodeResponse
-	(*RegisterByPasswordRequest)(nil),        // 15: identra.v1.RegisterByPasswordRequest
-	(*RegisterByPasswordResponse)(nil),       // 16: identra.v1.RegisterByPasswordResponse
-	(*LoginByPasswordRequest)(nil),           // 17: identra.v1.LoginByPasswordRequest
-	(*LoginByPasswordResponse)(nil),          // 18: identra.v1.LoginByPasswordResponse
-	(*RefreshTokenRequest)(nil),              // 19: identra.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),             // 20: identra.v1.RefreshTokenResponse
-	(*RevokeRefreshTokenRequest)(nil),        // 21: identra.v1.RevokeRefreshTokenRequest
-	(*RevokeRefreshTokenResponse)(nil),       // 22: identra.v1.RevokeRefreshTokenResponse
-	(*OAuthConnection)(nil),                  // 23: identra.v1.OAuthConnection
-	(*ListOAuthProvidersRequest)(nil),        // 24: identra.v1.ListOAuthProvidersRequest
-	(*OAuthProviderStatus)(nil),              // 25: identra.v1.OAuthProviderStatus
-	(*ListOAuthProvidersResponse)(nil),       // 26: identra.v1.ListOAuthProvidersResponse
-	(*GetCurrentUserLoginInfoRequest)(nil),   // 27: identra.v1.GetCurrentUserLoginInfoRequest
-	(*GetCurrentUserLoginInfoResponse)(nil),  // 28: identra.v1.GetCurrentUserLoginInfoResponse
+	(AuthProvider)(0),                  // 0: identra.v1.AuthProvider
+	(AuthProviderUnavailableReason)(0), // 1: identra.v1.AuthProviderUnavailableReason
+	(SigningAlgorithm)(0),              // 2: identra.v1.SigningAlgorithm
+	(*Token)(nil),                      // 3: identra.v1.Token
+	(*TokenPair)(nil),                  // 4: identra.v1.TokenPair
+	(*AuthProviderStatus)(nil),         // 5: identra.v1.AuthProviderStatus
+	(*OAuthUserProfile)(nil),           // 6: identra.v1.OAuthUserProfile
+	(*LinkedOAuthAccount)(nil),         // 7: identra.v1.LinkedOAuthAccount
+	(*User)(nil),                       // 8: identra.v1.User
+	(*RsaPublicKey)(nil),               // 9: identra.v1.RsaPublicKey
+	(*SigningKey)(nil),                 // 10: identra.v1.SigningKey
+	(*timestamppb.Timestamp)(nil),      // 11: google.protobuf.Timestamp
 }
 var file_identra_v1_types_proto_depIdxs = []int32{
-	0,  // 0: identra.v1.TokenPair.access_token:type_name -> identra.v1.Token
-	0,  // 1: identra.v1.TokenPair.refresh_token:type_name -> identra.v1.Token
-	2,  // 2: identra.v1.GetJWKSResponse.keys:type_name -> identra.v1.JSONWebKey
-	1,  // 3: identra.v1.LoginByOAuthResponse.token:type_name -> identra.v1.TokenPair
-	1,  // 4: identra.v1.BindUserByOAuthResponse.token:type_name -> identra.v1.TokenPair
-	1,  // 5: identra.v1.LoginByEmailCodeResponse.token:type_name -> identra.v1.TokenPair
-	1,  // 6: identra.v1.RegisterByPasswordResponse.token:type_name -> identra.v1.TokenPair
-	1,  // 7: identra.v1.LoginByPasswordResponse.token:type_name -> identra.v1.TokenPair
-	1,  // 8: identra.v1.RefreshTokenResponse.token:type_name -> identra.v1.TokenPair
-	25, // 9: identra.v1.ListOAuthProvidersResponse.providers:type_name -> identra.v1.OAuthProviderStatus
-	23, // 10: identra.v1.GetCurrentUserLoginInfoResponse.oauth_connections:type_name -> identra.v1.OAuthConnection
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	11, // 0: identra.v1.Token.expires_at:type_name -> google.protobuf.Timestamp
+	3,  // 1: identra.v1.TokenPair.access_token:type_name -> identra.v1.Token
+	3,  // 2: identra.v1.TokenPair.refresh_token:type_name -> identra.v1.Token
+	0,  // 3: identra.v1.AuthProviderStatus.provider:type_name -> identra.v1.AuthProvider
+	1,  // 4: identra.v1.AuthProviderStatus.unavailable_reason:type_name -> identra.v1.AuthProviderUnavailableReason
+	0,  // 5: identra.v1.LinkedOAuthAccount.provider:type_name -> identra.v1.AuthProvider
+	7,  // 6: identra.v1.User.linked_oauth_accounts:type_name -> identra.v1.LinkedOAuthAccount
+	2,  // 7: identra.v1.SigningKey.algorithm:type_name -> identra.v1.SigningAlgorithm
+	9,  // 8: identra.v1.SigningKey.rsa:type_name -> identra.v1.RsaPublicKey
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_identra_v1_types_proto_init() }
@@ -1738,22 +744,22 @@ func file_identra_v1_types_proto_init() {
 	if File_identra_v1_types_proto != nil {
 		return
 	}
-	file_identra_v1_types_proto_msgTypes[2].OneofWrappers = []any{}
-	file_identra_v1_types_proto_msgTypes[5].OneofWrappers = []any{}
-	file_identra_v1_types_proto_msgTypes[25].OneofWrappers = []any{}
-	file_identra_v1_types_proto_msgTypes[28].OneofWrappers = []any{}
+	file_identra_v1_types_proto_msgTypes[7].OneofWrappers = []any{
+		(*SigningKey_Rsa)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identra_v1_types_proto_rawDesc), len(file_identra_v1_types_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   29,
+			NumEnums:      3,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_identra_v1_types_proto_goTypes,
 		DependencyIndexes: file_identra_v1_types_proto_depIdxs,
+		EnumInfos:         file_identra_v1_types_proto_enumTypes,
 		MessageInfos:      file_identra_v1_types_proto_msgTypes,
 	}.Build()
 	File_identra_v1_types_proto = out.File

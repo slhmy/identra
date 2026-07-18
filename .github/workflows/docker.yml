@@ -12,14 +12,6 @@ permissions:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - service: identra-gateway
-            image: ghcr.io/${{ github.repository }}-gateway
-          - service: identra-grpc
-            image: ghcr.io/${{ github.repository }}-grpc
 
     steps:
       - name: Checkout
@@ -43,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ matrix.image }}
+          images: ghcr.io/${{ github.repository }}-grpc
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -60,7 +52,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            SERVICE=${{ matrix.service }}
+            SERVICE=identra-grpc
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package identra.v1;
+
+import "identra/v1/types.proto";
+
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
+
+// UserService methods require authorization: Bearer <access token> metadata.
+service UserService {
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse);
+  rpc LinkOAuthAccount(LinkOAuthAccountRequest) returns (LinkOAuthAccountResponse);
+}
+
+message GetCurrentUserRequest {}
+
+message GetCurrentUserResponse {
+  User user = 1;
+}
+
+message LinkOAuthAccountRequest {
+  string code = 1;
+  string state = 2;
+}
+
+message LinkOAuthAccountResponse {
+  TokenPair tokens = 1;
+  OAuthUserProfile profile = 2;
+}

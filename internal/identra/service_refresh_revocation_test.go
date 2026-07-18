@@ -34,7 +34,7 @@ func (s *mockRefreshTokenRevocationStore) IsRevoked(_ context.Context, tokenID s
 	return ok, nil
 }
 
-func TestRefreshTokenRevokesUsedRefreshToken(t *testing.T) {
+func TestRefreshSessionRevokesUsedRefreshToken(t *testing.T) {
 	tokenCfg := newTestTokenConfig(t)
 	pair, err := security.NewTokenPair("uid-refresh", tokenCfg)
 	if err != nil {
@@ -45,16 +45,16 @@ func TestRefreshTokenRevokesUsedRefreshToken(t *testing.T) {
 		tokenCfg:                tokenCfg,
 		refreshTokenRevocations: newMockRefreshTokenRevocationStore(),
 	}
-	req := &identra_v1_pb.RefreshTokenRequest{RefreshToken: pair.RefreshToken.Token}
+	req := &identra_v1_pb.RefreshSessionRequest{RefreshToken: pair.RefreshToken.Value}
 
-	if _, err := svc.RefreshToken(context.Background(), req); err != nil {
+	if _, err := svc.RefreshSession(context.Background(), req); err != nil {
 		t.Fatalf("expected first refresh to succeed, got %v", err)
 	}
-	_, err = svc.RefreshToken(context.Background(), req)
+	_, err = svc.RefreshSession(context.Background(), req)
 	requireCode(t, err, codes.Unauthenticated)
 }
 
-func TestRevokeRefreshTokenBlocksRefresh(t *testing.T) {
+func TestRevokeSessionBlocksRefresh(t *testing.T) {
 	tokenCfg := newTestTokenConfig(t)
 	pair, err := security.NewTokenPair("uid-revoke", tokenCfg)
 	if err != nil {
@@ -66,15 +66,15 @@ func TestRevokeRefreshTokenBlocksRefresh(t *testing.T) {
 		refreshTokenRevocations: newMockRefreshTokenRevocationStore(),
 	}
 
-	_, err = svc.RevokeRefreshToken(context.Background(), &identra_v1_pb.RevokeRefreshTokenRequest{
-		RefreshToken: pair.RefreshToken.Token,
+	_, err = svc.RevokeSession(context.Background(), &identra_v1_pb.RevokeSessionRequest{
+		RefreshToken: pair.RefreshToken.Value,
 	})
 	if err != nil {
 		t.Fatalf("expected revoke to succeed, got %v", err)
 	}
 
-	_, err = svc.RefreshToken(context.Background(), &identra_v1_pb.RefreshTokenRequest{
-		RefreshToken: pair.RefreshToken.Token,
+	_, err = svc.RefreshSession(context.Background(), &identra_v1_pb.RefreshSessionRequest{
+		RefreshToken: pair.RefreshToken.Value,
 	})
 	requireCode(t, err, codes.Unauthenticated)
 }

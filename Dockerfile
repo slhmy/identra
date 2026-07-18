@@ -16,7 +16,7 @@ RUN go mod download
 
 COPY . .
 
-# SERVICE must match a folder under ./cmd (e.g. identra-gateway, identra-grpc)
+# SERVICE must match a folder under ./cmd.
 ARG SERVICE=identra-grpc
 ARG CGO_ENABLED=1
 

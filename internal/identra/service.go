@@ -8,9 +8,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Service implements identra.v1.IdentraService.
+// Service implements the identra.v1 domain services.
 type Service struct {
-	identra_v1_pb.UnimplementedIdentraServiceServer
+	identra_v1_pb.UnimplementedAuthServiceServer
+	identra_v1_pb.UnimplementedSessionServiceServer
+	identra_v1_pb.UnimplementedUserServiceServer
+	identra_v1_pb.UnimplementedKeyServiceServer
 
 	emailCodeStore           EmailCodeStore
 	oauthStateStore          OAuthStateStore

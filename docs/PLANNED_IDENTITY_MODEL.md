@@ -24,7 +24,7 @@ Use this as the PR-sized execution plan for moving from the current user table t
 
 - Users have one primary `email` field and optional password hash.
 - OAuth identities are split into `external_identities` with a unique `(provider, provider_user_id)` binding.
-- Password registration is explicit via `POST /password/register`; password login does not create or set accounts.
+- Password registration is explicit via `AuthService.RegisterWithPassword`; password login does not create or set accounts.
 - Refresh tokens can be revoked and are rotated on successful refresh.
 
 ### Phase 1: Email identity table
@@ -158,15 +158,14 @@ When a user successfully logs in via **sms-code** using a phone number, that pho
 ## Login / Bind Flows
 
 ### API Surface (current)
-At time of writing, Identra exposes:
+At time of writing, Identra exposes a gRPC-only API:
 
-- `POST /password/register` — RegisterByPassword
-- `POST /password/login` — LoginByPassword
-- `POST /email/code` — SendLoginEmailCode
-- `POST /email/login` — LoginByEmailCode
-- `POST /oauth/url` — GetOAuthAuthorizationURL
-- `POST /oauth/login` — LoginByOAuth
-- `POST /oauth/bind` — BindUserByOAuth
+- `AuthService.RegisterWithPassword`, `LoginWithPassword`
+- `AuthService.RequestEmailLoginCode`, `LoginWithEmailCode`
+- `AuthService.ListOAuthProviders`, `StartOAuthLogin`, `LoginWithOAuth`
+- `SessionService.RefreshSession`, `RevokeSession`
+- `UserService.GetCurrentUser`, `LinkOAuthAccount`
+- `KeyService.ListSigningKeys`
 
 ---
 
@@ -260,7 +259,7 @@ Behavior mirrors email-code:
 
 ## Password Registration & Login
 
-### RegisterByPassword (`POST /password/register`)
+### `AuthService.RegisterWithPassword`
 Inputs:
 - `email` (normalized)
 - `password`
@@ -272,7 +271,7 @@ Rules:
 
 > If you later require email verification for password accounts, document the additional steps here.
 
-### LoginByPassword (`POST /password/login`)
+### `AuthService.LoginWithPassword`
 Inputs:
 - `email` (normalized)
 - `password`
@@ -307,7 +306,7 @@ If a primary email is removed:
 
 ## Conflict Matrix & Error Codes
 
-This table describes the expected gRPC status codes (and equivalent HTTP mapping via grpc-gateway).
+This table describes the expected gRPC status codes.
 
 | Scenario | gRPC code | Notes |
 |---|---|---|
@@ -316,9 +315,9 @@ This table describes the expected gRPC status codes (and equivalent HTTP mapping
 | OAuth not configured (missing client id/secret) | `FailedPrecondition` | |
 | OAuth state invalid/expired | `InvalidArgument` | |
 | OAuth identity already linked to another user during bind | `AlreadyExists` | prevents account hijack |
-| RegisterByPassword email already exists | `AlreadyExists` | |
-| LoginByPassword user not found | `NotFound` | |
-| LoginByPassword no password set | `FailedPrecondition` | OAuth-only account |
+| RegisterWithPassword email already exists | `AlreadyExists` | |
+| LoginWithPassword user not found | `NotFound` | |
+| LoginWithPassword no password set | `FailedPrecondition` | OAuth-only account |
 | Wrong password / wrong email code | `Unauthenticated` | |
 | Rate limit exceeded (login attempts / send code) | `ResourceExhausted` | brute-force protection |
 | Internal persistence failure | `Internal` | |

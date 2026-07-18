@@ -4,117 +4,58 @@ import (
 	"context"
 	"testing"
 
+	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
 	"golang.org/x/oauth2"
 )
 
 func TestListOAuthProviders_GitHubEnabled(t *testing.T) {
-	s := &Service{
-		githubOAuthConfig: &oauth2.Config{
-			ClientID:     "test-client-id",
-			ClientSecret: "test-client-secret",
-		},
-	}
+	s := &Service{githubOAuthConfig: &oauth2.Config{
+		ClientID: "test-client-id", ClientSecret: "test-client-secret",
+	}}
 
-	resp, err := s.ListOAuthProviders(context.Background(), nil)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	provider := requireGitHubProvider(t, s)
+	if !provider.Enabled {
+		t.Error("expected github to be enabled")
 	}
-	if len(resp.Providers) == 0 {
-		t.Fatal("expected at least one provider")
-	}
-
-	var found bool
-	for _, p := range resp.Providers {
-		if p.Name == "github" {
-			found = true
-			if !p.Enabled {
-				t.Error("expected github to be enabled")
-			}
-			if p.Reason != nil {
-				t.Errorf("expected no reason, got %q", *p.Reason)
-			}
-		}
-	}
-	if !found {
-		t.Error("github provider not found in response")
+	if provider.UnavailableReason != identra_v1_pb.AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_UNSPECIFIED {
+		t.Errorf("expected no unavailable reason, got %s", provider.UnavailableReason)
 	}
 }
 
 func TestListOAuthProviders_MissingClientID(t *testing.T) {
-	s := &Service{
-		githubOAuthConfig: &oauth2.Config{
-			ClientID:     "",
-			ClientSecret: "test-client-secret",
-		},
+	s := &Service{githubOAuthConfig: &oauth2.Config{ClientSecret: "test-client-secret"}}
+	provider := requireGitHubProvider(t, s)
+	if provider.Enabled {
+		t.Error("expected github to be disabled")
 	}
-
-	resp, err := s.ListOAuthProviders(context.Background(), nil)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	if provider.UnavailableReason != identra_v1_pb.AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_ID {
+		t.Errorf("expected missing client ID reason, got %s", provider.UnavailableReason)
 	}
-
-	for _, p := range resp.Providers {
-		if p.Name == "github" {
-			if p.Enabled {
-				t.Error("expected github to be disabled")
-			}
-			if p.Reason == nil || *p.Reason != "missing_client_id" {
-				t.Errorf("expected reason missing_client_id, got %v", p.Reason)
-			}
-			return
-		}
-	}
-	t.Error("github provider not found in response")
 }
 
 func TestListOAuthProviders_MissingClientSecret(t *testing.T) {
-	s := &Service{
-		githubOAuthConfig: &oauth2.Config{
-			ClientID:     "test-client-id",
-			ClientSecret: "",
-		},
+	s := &Service{githubOAuthConfig: &oauth2.Config{ClientID: "test-client-id"}}
+	provider := requireGitHubProvider(t, s)
+	if provider.Enabled {
+		t.Error("expected github to be disabled")
 	}
-
-	resp, err := s.ListOAuthProviders(context.Background(), nil)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	if provider.UnavailableReason != identra_v1_pb.AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_SECRET {
+		t.Errorf("expected missing client secret reason, got %s", provider.UnavailableReason)
 	}
-
-	for _, p := range resp.Providers {
-		if p.Name == "github" {
-			if p.Enabled {
-				t.Error("expected github to be disabled")
-			}
-			if p.Reason == nil || *p.Reason != "missing_client_secret" {
-				t.Errorf("expected reason missing_client_secret, got %v", p.Reason)
-			}
-			return
-		}
-	}
-	t.Error("github provider not found in response")
 }
 
-func TestListOAuthProviders_AllSupportedProvidersReturned(t *testing.T) {
-	s := &Service{
-		githubOAuthConfig: &oauth2.Config{},
-	}
-
-	resp, err := s.ListOAuthProviders(context.Background(), nil)
+func requireGitHubProvider(t *testing.T, s *Service) *identra_v1_pb.AuthProviderStatus {
+	t.Helper()
+	resp, err := s.ListOAuthProviders(context.Background(), &identra_v1_pb.ListOAuthProvidersRequest{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-
-	if len(resp.Providers) != len(supportedProviders) {
-		t.Errorf("expected %d providers, got %d", len(supportedProviders), len(resp.Providers))
+	if len(resp.Providers) != 1 {
+		t.Fatalf("expected one supported provider, got %d", len(resp.Providers))
 	}
-
-	providerNames := make(map[string]bool)
-	for _, p := range resp.Providers {
-		providerNames[p.Name] = true
+	provider := resp.Providers[0]
+	if provider.Provider != identra_v1_pb.AuthProvider_AUTH_PROVIDER_GITHUB {
+		t.Fatalf("expected github provider, got %s", provider.Provider)
 	}
-	for name := range supportedProviders {
-		if !providerNames[name] {
-			t.Errorf("expected provider %q to be in response", name)
-		}
-	}
+	return provider
 }

@@ -43,9 +43,9 @@ func requireCode(t *testing.T, err error, want codes.Code) {
 	}
 }
 
-// ---- RegisterByPassword tests ----
+// ---- RegisterWithPassword tests ----
 
-func TestRegisterByPassword_MissingFields(t *testing.T) {
+func TestRegisterWithPassword_MissingFields(t *testing.T) {
 	svc := &Service{userStore: newMockUserStore()}
 
 	cases := []struct {
@@ -59,7 +59,7 @@ func TestRegisterByPassword_MissingFields(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := svc.RegisterByPassword(context.Background(), &identra_v1_pb.RegisterByPasswordRequest{
+			_, err := svc.RegisterWithPassword(context.Background(), &identra_v1_pb.RegisterWithPasswordRequest{
 				Email:    tc.email,
 				Password: tc.pwd,
 			})
@@ -68,25 +68,25 @@ func TestRegisterByPassword_MissingFields(t *testing.T) {
 	}
 }
 
-func TestRegisterByPassword_Success(t *testing.T) {
+func TestRegisterWithPassword_Success(t *testing.T) {
 	svc := &Service{
 		userStore: newMockUserStore(),
 		tokenCfg:  newTestTokenConfig(t),
 	}
 
-	resp, err := svc.RegisterByPassword(context.Background(), &identra_v1_pb.RegisterByPasswordRequest{
+	resp, err := svc.RegisterWithPassword(context.Background(), &identra_v1_pb.RegisterWithPasswordRequest{
 		Email:    "new@example.com",
 		Password: "s3cr3t",
 	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if resp.Token == nil || resp.Token.AccessToken == nil || resp.Token.AccessToken.Token == "" {
+	if resp.Tokens == nil || resp.Tokens.AccessToken == nil || resp.Tokens.AccessToken.Value == "" {
 		t.Error("expected a non-empty access token in the response")
 	}
 }
 
-func TestRegisterByPassword_ExistingEmail(t *testing.T) {
+func TestRegisterWithPassword_ExistingEmail(t *testing.T) {
 	store := newMockUserStore()
 	// Pre-populate a user with the same email.
 	_ = store.Create(context.Background(), &UserModel{
@@ -96,14 +96,14 @@ func TestRegisterByPassword_ExistingEmail(t *testing.T) {
 
 	svc := &Service{userStore: store}
 
-	_, err := svc.RegisterByPassword(context.Background(), &identra_v1_pb.RegisterByPasswordRequest{
+	_, err := svc.RegisterWithPassword(context.Background(), &identra_v1_pb.RegisterWithPasswordRequest{
 		Email:    "taken@example.com",
 		Password: "s3cr3t",
 	})
 	requireCode(t, err, codes.AlreadyExists)
 }
 
-func TestRegisterByPassword_DuplicateRace(t *testing.T) {
+func TestRegisterWithPassword_DuplicateRace(t *testing.T) {
 	// Simulate a race where GetByEmail returns ErrNotFound (pre-check passes)
 	// but Create fails with ErrAlreadyExists (another goroutine just
 	// created the same user).
@@ -112,16 +112,16 @@ func TestRegisterByPassword_DuplicateRace(t *testing.T) {
 
 	svc := &Service{userStore: store}
 
-	_, err := svc.RegisterByPassword(context.Background(), &identra_v1_pb.RegisterByPasswordRequest{
+	_, err := svc.RegisterWithPassword(context.Background(), &identra_v1_pb.RegisterWithPasswordRequest{
 		Email:    "race@example.com",
 		Password: "s3cr3t",
 	})
 	requireCode(t, err, codes.AlreadyExists)
 }
 
-// ---- LoginByPassword tests ----
+// ---- LoginWithPassword tests ----
 
-func TestLoginByPassword_MissingFields(t *testing.T) {
+func TestLoginWithPassword_MissingFields(t *testing.T) {
 	svc := &Service{userStore: newMockUserStore()}
 
 	cases := []struct {
@@ -135,7 +135,7 @@ func TestLoginByPassword_MissingFields(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := svc.LoginByPassword(context.Background(), &identra_v1_pb.LoginByPasswordRequest{
+			_, err := svc.LoginWithPassword(context.Background(), &identra_v1_pb.LoginWithPasswordRequest{
 				Email:    tc.email,
 				Password: tc.pwd,
 			})
@@ -144,17 +144,17 @@ func TestLoginByPassword_MissingFields(t *testing.T) {
 	}
 }
 
-func TestLoginByPassword_NotFound(t *testing.T) {
+func TestLoginWithPassword_NotFound(t *testing.T) {
 	svc := &Service{userStore: newMockUserStore()}
 
-	_, err := svc.LoginByPassword(context.Background(), &identra_v1_pb.LoginByPasswordRequest{
+	_, err := svc.LoginWithPassword(context.Background(), &identra_v1_pb.LoginWithPasswordRequest{
 		Email:    "nobody@example.com",
 		Password: "s3cr3t",
 	})
 	requireCode(t, err, codes.NotFound)
 }
 
-func TestLoginByPassword_NoPassword(t *testing.T) {
+func TestLoginWithPassword_NoPassword(t *testing.T) {
 	store := newMockUserStore()
 	_ = store.Create(context.Background(), &UserModel{
 		ID:             "uid1",
@@ -163,14 +163,14 @@ func TestLoginByPassword_NoPassword(t *testing.T) {
 	})
 	svc := &Service{userStore: store}
 
-	_, err := svc.LoginByPassword(context.Background(), &identra_v1_pb.LoginByPasswordRequest{
+	_, err := svc.LoginWithPassword(context.Background(), &identra_v1_pb.LoginWithPasswordRequest{
 		Email:    "oauth@example.com",
 		Password: "s3cr3t",
 	})
 	requireCode(t, err, codes.FailedPrecondition)
 }
 
-func TestLoginByPassword_WrongPassword(t *testing.T) {
+func TestLoginWithPassword_WrongPassword(t *testing.T) {
 	hash, err := security.HashPassword("correct-password")
 	if err != nil {
 		t.Fatalf("failed to hash password: %v", err)
@@ -184,14 +184,14 @@ func TestLoginByPassword_WrongPassword(t *testing.T) {
 	})
 	svc := &Service{userStore: store}
 
-	_, loginErr := svc.LoginByPassword(context.Background(), &identra_v1_pb.LoginByPasswordRequest{
+	_, loginErr := svc.LoginWithPassword(context.Background(), &identra_v1_pb.LoginWithPasswordRequest{
 		Email:    "user@example.com",
 		Password: "wrong-password",
 	})
 	requireCode(t, loginErr, codes.Unauthenticated)
 }
 
-func TestLoginByPassword_Success(t *testing.T) {
+func TestLoginWithPassword_Success(t *testing.T) {
 	hash, err := security.HashPassword("correct-password")
 	if err != nil {
 		t.Fatalf("failed to hash password: %v", err)
@@ -208,14 +208,14 @@ func TestLoginByPassword_Success(t *testing.T) {
 		tokenCfg:  newTestTokenConfig(t),
 	}
 
-	resp, loginErr := svc.LoginByPassword(context.Background(), &identra_v1_pb.LoginByPasswordRequest{
+	resp, loginErr := svc.LoginWithPassword(context.Background(), &identra_v1_pb.LoginWithPasswordRequest{
 		Email:    "user@example.com",
 		Password: "correct-password",
 	})
 	if loginErr != nil {
 		t.Fatalf("expected no error, got %v", loginErr)
 	}
-	if resp.Token == nil || resp.Token.AccessToken == nil || resp.Token.AccessToken.Token == "" {
+	if resp.Tokens == nil || resp.Tokens.AccessToken == nil || resp.Tokens.AccessToken.Value == "" {
 		t.Error("expected a non-empty access token in the response")
 	}
 }

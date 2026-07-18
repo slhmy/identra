@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package identra.v1;
+
+import "identra/v1/types.proto";
+
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
+
+service SessionService {
+  rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+}
+
+message RefreshSessionRequest {
+  string refresh_token = 1;
+}
+
+message RefreshSessionResponse {
+  TokenPair tokens = 1;
+}
+
+message RevokeSessionRequest {
+  string refresh_token = 1;
+}
+
+message RevokeSessionResponse {}

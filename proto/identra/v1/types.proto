@@ -2,179 +2,71 @@ syntax = "proto3";
 
 package identra.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
 
-// Token contains a JWT value and its Unix expiration time.
+// Token is a signed bearer token and its expiration time.
 message Token {
-  // Signed JWT string.
-  string token = 1;
-  // Expiration time as a Unix timestamp (seconds since epoch).
-  int64 expires_at = 2;
+  string value = 1;
+  google.protobuf.Timestamp expires_at = 2;
 }
 
-// TokenPair contains both access and refresh tokens following JWKS standards
+// TokenPair contains the credentials issued for an authenticated session.
 message TokenPair {
-  // Short-lived access token for API authentication (typically 15 minutes)
   Token access_token = 1;
-  // Long-lived refresh token for obtaining new access tokens (typically 7 days)
   Token refresh_token = 2;
-  // Token type, typically "Bearer"
-  string token_type = 3;
 }
 
-// JSON Web Key represents a single key in the JWKS
-message JSONWebKey {
-  // Key type (e.g., "RSA", "EC")
-  string kty = 1;
-  // Algorithm (e.g., "RS256", "ES256")
-  string alg = 2;
-  // Key usage (e.g., "sig" for signature)
-  string use = 3;
-  // Key ID
-  string kid = 4;
-  // RSA modulus (Base64URL encoded, for RSA keys)
-  optional string n = 5;
-  // RSA exponent (Base64URL encoded, for RSA keys)
-  optional string e = 6;
-  // EC curve name (for EC keys)
-  optional string crv = 7;
-  // EC x coordinate (Base64URL encoded, for EC keys)
-  optional string x = 8;
-  // EC y coordinate (Base64URL encoded, for EC keys)
-  optional string y = 9;
+enum AuthProvider {
+  AUTH_PROVIDER_UNSPECIFIED = 0;
+  AUTH_PROVIDER_GITHUB = 1;
 }
 
-message GetJWKSRequest {}
-message GetJWKSResponse {
-  // List of JSON Web Keys
-  repeated JSONWebKey keys = 1;
+enum AuthProviderUnavailableReason {
+  AUTH_PROVIDER_UNAVAILABLE_REASON_UNSPECIFIED = 0;
+  AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_ID = 1;
+  AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_SECRET = 2;
 }
 
-message GetOAuthAuthorizationURLRequest {
-  string provider = 1;
-  optional string redirect_url = 2;
-}
-message GetOAuthAuthorizationURLResponse {
-  string url = 1;
-  string state = 2;
+message AuthProviderStatus {
+  AuthProvider provider = 1;
+  bool enabled = 2;
+  AuthProviderUnavailableReason unavailable_reason = 3;
 }
 
-message LoginByOAuthRequest {
-  string code = 1;
-  string state = 2;
-}
-message LoginByOAuthResponse {
-  TokenPair token = 1;
-  // Username from the OAuth provider (e.g., GitHub login name)
-  string username = 2;
-  // Avatar URL from the OAuth provider
-  string avatar_url = 3;
-  // Email from the OAuth provider (if available)
-  string email = 4;
+message OAuthUserProfile {
+  string username = 1;
+  string avatar_url = 2;
+  string email = 3;
 }
 
-message BindUserByOAuthRequest {
-  // Access token for the currently authenticated user
-  string access_token = 1;
-  // OAuth authorization code received from the provider
-  string code = 2;
-  // OAuth state to validate the flow
-  string state = 3;
-}
-message BindUserByOAuthResponse {
-  // Updated token pair after binding completes
-  TokenPair token = 1;
-  // Username from the OAuth provider (e.g., GitHub login name)
-  string username = 2;
-  // Avatar URL from the OAuth provider
-  string avatar_url = 3;
-}
-
-message SendLoginEmailCodeRequest {
-  string email = 1;
-  // When true, send the email using HTML template; otherwise plain text
-  bool use_html = 2;
-}
-message SendLoginEmailCodeResponse {}
-
-message LoginByEmailCodeRequest {
-  string email = 1;
-  string code = 2;
-}
-message LoginByEmailCodeResponse {
-  TokenPair token = 1;
-}
-
-message RegisterByPasswordRequest {
-  string email = 1;
-  string password = 2;
-}
-message RegisterByPasswordResponse {
-  TokenPair token = 1;
-}
-
-message LoginByPasswordRequest {
-  string email = 1;
-  string password = 2;
-}
-message LoginByPasswordResponse {
-  TokenPair token = 1;
-}
-
-message RefreshTokenRequest {
-  string refresh_token = 1;
-}
-message RefreshTokenResponse {
-  TokenPair token = 1;
-}
-
-message RevokeRefreshTokenRequest {
-  string refresh_token = 1;
-}
-message RevokeRefreshTokenResponse {}
-
-// OAuthConnection describes one OAuth identity linked to the user.
-message OAuthConnection {
-  // Provider name, e.g. "github".
-  string provider = 1;
-  // Provider user identifier, e.g. GitHub numeric ID as string.
+message LinkedOAuthAccount {
+  AuthProvider provider = 1;
   string provider_user_id = 2;
 }
 
-message ListOAuthProvidersRequest {}
-
-// OAuthProviderStatus describes whether a single OAuth provider is available.
-message OAuthProviderStatus {
-  // Provider name, e.g. "github".
-  string name = 1;
-  // Whether the provider is fully configured and ready for use.
-  bool enabled = 2;
-  // Machine-readable reason when the provider is disabled,
-  // e.g. "missing_client_id", "missing_client_secret".
-  optional string reason = 3;
-}
-
-message ListOAuthProvidersResponse {
-  // All supported OAuth providers with their availability status.
-  repeated OAuthProviderStatus providers = 1;
-}
-
-message GetCurrentUserLoginInfoRequest {
-  // Deprecated: prefer Authorization: Bearer <access_token>.
-  string access_token = 1;
-}
-
-message GetCurrentUserLoginInfoResponse {
-  string user_id = 1;
-  // User's primary email (also used for email-code login).
+message User {
+  string id = 1;
   string email = 2;
+  bool password_login_enabled = 3;
+  repeated LinkedOAuthAccount linked_oauth_accounts = 4;
+}
 
-  // When present, indicates a GitHub account is linked.
-  optional string github_id = 3;
+enum SigningAlgorithm {
+  SIGNING_ALGORITHM_UNSPECIFIED = 0;
+  SIGNING_ALGORITHM_RS256 = 1;
+}
 
-  // Whether the user has a password set (email+password login).
-  bool password_enabled = 4;
+message RsaPublicKey {
+  bytes modulus = 1;
+  uint32 exponent = 2;
+}
 
-  // Linked OAuth identities (extensible for more providers in future).
-  repeated OAuthConnection oauth_connections = 5;
+message SigningKey {
+  string key_id = 1;
+  SigningAlgorithm algorithm = 2;
+  oneof public_key {
+    RsaPublicKey rsa = 3;
+  }
 }

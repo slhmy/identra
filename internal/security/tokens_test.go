@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
 )
 
 // Helper function to create test token config with generated keys
@@ -35,33 +36,29 @@ func TestNewTokenPair(t *testing.T) {
 		t.Fatalf("Failed to create token pair: %v", err)
 	}
 
-	if tokenPair.AccessToken == nil || tokenPair.AccessToken.Token == "" {
-		t.Error("Expected access_token.token to be non-empty")
+	if tokenPair.AccessToken == nil || tokenPair.AccessToken.Value == "" {
+		t.Error("Expected access_token.value to be non-empty")
 	}
-	if tokenPair.AccessToken == nil || tokenPair.AccessToken.ExpiresAt == 0 {
+	if tokenPair.AccessToken == nil || tokenPair.AccessToken.ExpiresAt == nil {
 		t.Error("Expected access_token.expires_at to be set")
 	}
 
-	if tokenPair.RefreshToken == nil || tokenPair.RefreshToken.Token == "" {
-		t.Error("Expected refresh_token.token to be non-empty")
+	if tokenPair.RefreshToken == nil || tokenPair.RefreshToken.Value == "" {
+		t.Error("Expected refresh_token.value to be non-empty")
 	}
-	if tokenPair.RefreshToken == nil || tokenPair.RefreshToken.ExpiresAt == 0 {
+	if tokenPair.RefreshToken == nil || tokenPair.RefreshToken.ExpiresAt == nil {
 		t.Error("Expected refresh_token.expires_at to be set")
 	}
 
-	if tokenPair.TokenType != "Bearer" {
-		t.Errorf("Expected token type 'Bearer', got %s", tokenPair.TokenType)
-	}
-
 	expectedAccessExp := time.Now().Add(config.AccessTokenExpiration)
-	accessExp := time.Unix(tokenPair.AccessToken.ExpiresAt, 0)
+	accessExp := tokenPair.AccessToken.ExpiresAt.AsTime()
 	if accessExp.Before(expectedAccessExp.Add(-5*time.Second)) ||
 		accessExp.After(expectedAccessExp.Add(5*time.Second)) {
 		t.Errorf("Expected access token expiration around %v, got %v", expectedAccessExp, accessExp)
 	}
 
 	expectedRefreshExp := time.Now().Add(config.RefreshTokenExpiration)
-	refreshExp := time.Unix(tokenPair.RefreshToken.ExpiresAt, 0)
+	refreshExp := tokenPair.RefreshToken.ExpiresAt.AsTime()
 	if refreshExp.Before(expectedRefreshExp.Add(-5*time.Second)) ||
 		refreshExp.After(expectedRefreshExp.Add(5*time.Second)) {
 		t.Errorf("Expected refresh token expiration around %v, got %v", expectedRefreshExp, refreshExp)
@@ -77,7 +74,7 @@ func TestValidateAccessToken(t *testing.T) {
 		t.Fatalf("Failed to create token pair: %v", err)
 	}
 
-	claims, err := ValidateAccessToken(tokenPair.AccessToken.Token, config.PublicKey)
+	claims, err := ValidateAccessToken(tokenPair.AccessToken.Value, config.PublicKey)
 	if err != nil {
 		t.Fatalf("Failed to validate access token: %v", err)
 	}
@@ -92,7 +89,7 @@ func TestValidateAccessToken(t *testing.T) {
 		t.Error("Expected token ID to be set")
 	}
 
-	if _, err = ValidateRefreshToken(tokenPair.AccessToken.Token, config.PublicKey); err == nil {
+	if _, err = ValidateRefreshToken(tokenPair.AccessToken.Value, config.PublicKey); err == nil {
 		t.Error("Expected access token to fail validation as refresh token")
 	}
 }
@@ -106,7 +103,7 @@ func TestValidateRefreshToken(t *testing.T) {
 		t.Fatalf("Failed to create token pair: %v", err)
 	}
 
-	claims, err := ValidateRefreshToken(tokenPair.RefreshToken.Token, config.PublicKey)
+	claims, err := ValidateRefreshToken(tokenPair.RefreshToken.Value, config.PublicKey)
 	if err != nil {
 		t.Fatalf("Failed to validate refresh token: %v", err)
 	}
@@ -118,7 +115,7 @@ func TestValidateRefreshToken(t *testing.T) {
 		t.Errorf("Expected token type %s, got %s", RefreshTokenType, claims.TokenType)
 	}
 
-	if _, err = ValidateAccessToken(tokenPair.RefreshToken.Token, config.PublicKey); err == nil {
+	if _, err = ValidateAccessToken(tokenPair.RefreshToken.Value, config.PublicKey); err == nil {
 		t.Error("Expected refresh token to fail validation as access token")
 	}
 }
@@ -132,19 +129,19 @@ func TestRefreshTokenPair(t *testing.T) {
 		t.Fatalf("Failed to create initial token pair: %v", err)
 	}
 
-	newPair, err := RefreshTokenPair(originalPair.RefreshToken.Token, config)
+	newPair, err := RefreshTokenPair(originalPair.RefreshToken.Value, config)
 	if err != nil {
 		t.Fatalf("Failed to refresh token pair: %v", err)
 	}
 
-	if newPair.AccessToken.Token == originalPair.AccessToken.Token {
+	if newPair.AccessToken.Value == originalPair.AccessToken.Value {
 		t.Error("Expected new access token to be different from original")
 	}
-	if newPair.RefreshToken.Token == originalPair.RefreshToken.Token {
+	if newPair.RefreshToken.Value == originalPair.RefreshToken.Value {
 		t.Error("Expected new refresh token to be different from original")
 	}
 
-	claims, err := ValidateAccessToken(newPair.AccessToken.Token, config.PublicKey)
+	claims, err := ValidateAccessToken(newPair.AccessToken.Value, config.PublicKey)
 	if err != nil {
 		t.Fatalf("Failed to validate new access token: %v", err)
 	}
@@ -230,7 +227,7 @@ func TestInvalidTokenValidation(t *testing.T) {
 		t.Fatalf("Failed to generate wrong key pair: %v", err)
 	}
 
-	if _, err = ValidateAccessToken(tokenPair.AccessToken.Token, wrongKm.GetPublicKey()); err == nil {
+	if _, err = ValidateAccessToken(tokenPair.AccessToken.Value, wrongKm.GetPublicKey()); err == nil {
 		t.Error("Expected error for wrong public key")
 	}
 }
@@ -262,18 +259,16 @@ func TestKeyManager(t *testing.T) {
 		t.Error("Expected private key to be available")
 	}
 
-	jwksResponse := km.GetJWKS()
-	if len(jwksResponse.Keys) != 1 {
-		t.Errorf("Expected 1 key in JWKS, got %d", len(jwksResponse.Keys))
+	keyListResponse := km.ListSigningKeys()
+	if len(keyListResponse.Keys) != 1 {
+		t.Errorf("Expected 1 key in signing key list, got %d", len(keyListResponse.Keys))
 	}
-	if jwksResponse.Keys[0].Kty != "RSA" {
-		t.Errorf("Expected key type RSA, got %s", jwksResponse.Keys[0].Kty)
+	key := keyListResponse.Keys[0]
+	if key.GetRsa() == nil || len(key.GetRsa().GetModulus()) == 0 || key.GetRsa().GetExponent() == 0 {
+		t.Fatal("Expected a complete RSA public key")
 	}
-	if jwksResponse.Keys[0].Alg != "RS256" {
-		t.Errorf("Expected algorithm RS256, got %s", jwksResponse.Keys[0].Alg)
-	}
-	if jwksResponse.Keys[0].Use != "sig" {
-		t.Errorf("Expected use sig, got %s", jwksResponse.Keys[0].Use)
+	if key.Algorithm != identra_v1_pb.SigningAlgorithm_SIGNING_ALGORITHM_RS256 {
+		t.Errorf("Expected algorithm RS256, got %s", key.Algorithm)
 	}
 
 	privatePEM, err := km.ExportPrivateKeyPEM()
@@ -314,13 +309,13 @@ func TestKeyRotation(t *testing.T) {
 		t.Error("Expected initial key ID to be set")
 	}
 
-	// Verify only one key in JWKS
-	jwks := km.GetJWKS()
-	if len(jwks.Keys) != 1 {
-		t.Errorf("Expected 1 key in JWKS, got %d", len(jwks.Keys))
+	// Verify only one key in signing key list
+	keyList := km.ListSigningKeys()
+	if len(keyList.Keys) != 1 {
+		t.Errorf("Expected 1 key in signing key list, got %d", len(keyList.Keys))
 	}
-	if jwks.Keys[0].Kid != firstKeyID {
-		t.Errorf("Expected key ID %s, got %s", firstKeyID, jwks.Keys[0].Kid)
+	if keyList.Keys[0].KeyId != firstKeyID {
+		t.Errorf("Expected key ID %s, got %s", firstKeyID, keyList.Keys[0].KeyId)
 	}
 
 	// Add a new key in PASSIVE state
@@ -335,10 +330,10 @@ func TestKeyRotation(t *testing.T) {
 		t.Error("Expected second key ID to be different from first")
 	}
 
-	// Verify both keys are in JWKS
-	jwks = km.GetJWKS()
-	if len(jwks.Keys) != 2 {
-		t.Errorf("Expected 2 keys in JWKS after adding passive key, got %d", len(jwks.Keys))
+	// Verify both keys are in signing key list
+	keyList = km.ListSigningKeys()
+	if len(keyList.Keys) != 2 {
+		t.Errorf("Expected 2 keys in signing key list after adding passive key, got %d", len(keyList.Keys))
 	}
 
 	// Verify active key is still the first one
@@ -356,10 +351,10 @@ func TestKeyRotation(t *testing.T) {
 		t.Errorf("Expected active key to be %s after promotion, got %s", secondKeyID, km.GetKeyID())
 	}
 
-	// Verify both keys are still in JWKS (old key should be PASSIVE now)
-	jwks = km.GetJWKS()
-	if len(jwks.Keys) != 2 {
-		t.Errorf("Expected 2 keys in JWKS after promotion, got %d", len(jwks.Keys))
+	// Verify both keys are still in signing key list (old key should be PASSIVE now)
+	keyList = km.ListSigningKeys()
+	if len(keyList.Keys) != 2 {
+		t.Errorf("Expected 2 keys in signing key list after promotion, got %d", len(keyList.Keys))
 	}
 
 	// Retire the first key
@@ -367,13 +362,13 @@ func TestKeyRotation(t *testing.T) {
 		t.Fatalf("Failed to retire key: %v", err)
 	}
 
-	// Verify only the second key is in JWKS
-	jwks = km.GetJWKS()
-	if len(jwks.Keys) != 1 {
-		t.Errorf("Expected 1 key in JWKS after retiring first key, got %d", len(jwks.Keys))
+	// Verify only the second key is in signing key list
+	keyList = km.ListSigningKeys()
+	if len(keyList.Keys) != 1 {
+		t.Errorf("Expected 1 key in signing key list after retiring first key, got %d", len(keyList.Keys))
 	}
-	if jwks.Keys[0].Kid != secondKeyID {
-		t.Errorf("Expected remaining key to be %s, got %s", secondKeyID, jwks.Keys[0].Kid)
+	if keyList.Keys[0].KeyId != secondKeyID {
+		t.Errorf("Expected remaining key to be %s, got %s", secondKeyID, keyList.Keys[0].KeyId)
 	}
 }
 
@@ -402,7 +397,7 @@ func TestKeyRotationWithTokenValidation(t *testing.T) {
 	}
 
 	// Verify token can be validated with first key
-	claims, err := ValidateAccessToken(tokenPair.AccessToken.Token, km.GetPublicKey())
+	claims, err := ValidateAccessToken(tokenPair.AccessToken.Value, km.GetPublicKey())
 	if err != nil {
 		t.Fatalf("Failed to validate token with first key: %v", err)
 	}
@@ -423,10 +418,10 @@ func TestKeyRotationWithTokenValidation(t *testing.T) {
 
 	// Token signed with first key should still be valid (key is now PASSIVE)
 	// In a real scenario, we would extract kid from JWT header and use it to look up the key
-	// For this test, we just verify that both keys are still in JWKS
-	jwks := km.GetJWKS()
-	if len(jwks.Keys) != 2 {
-		t.Errorf("Expected 2 keys in JWKS after promotion, got %d", len(jwks.Keys))
+	// For this test, we just verify that both keys are still in signing key list
+	keyList := km.ListSigningKeys()
+	if len(keyList.Keys) != 2 {
+		t.Errorf("Expected 2 keys in signing key list after promotion, got %d", len(keyList.Keys))
 	}
 
 	// Create a new token with the second (now active) key
@@ -440,7 +435,7 @@ func TestKeyRotationWithTokenValidation(t *testing.T) {
 	}
 
 	// New token should be valid with second key
-	newClaims, err := ValidateAccessToken(newTokenPair.AccessToken.Token, km.GetPublicKey())
+	newClaims, err := ValidateAccessToken(newTokenPair.AccessToken.Value, km.GetPublicKey())
 	if err != nil {
 		t.Fatalf("Failed to validate token with second key: %v", err)
 	}
@@ -658,7 +653,7 @@ func TestInitializeFromPEMWithExistingKey(t *testing.T) {
 	}
 }
 
-func TestJWKSDeterministicOrder(t *testing.T) {
+func TestSigningKeysDeterministicOrder(t *testing.T) {
 	km := &KeyManager{}
 
 	// Add multiple keys in random order
@@ -676,32 +671,32 @@ func TestJWKSDeterministicOrder(t *testing.T) {
 		t.Fatalf("Failed to add third passive key: %v", err)
 	}
 
-	// Get JWKS multiple times and verify order is consistent
-	jwks1 := km.GetJWKS()
-	jwks2 := km.GetJWKS()
-	jwks3 := km.GetJWKS()
+	// Get signing key list multiple times and verify order is consistent
+	keyList1 := km.ListSigningKeys()
+	keyList2 := km.ListSigningKeys()
+	keyList3 := km.ListSigningKeys()
 
 	// Verify all responses have the same number of keys
-	if len(jwks1.Keys) != len(jwks2.Keys) || len(jwks1.Keys) != len(jwks3.Keys) {
-		t.Errorf("Inconsistent number of keys across JWKS responses")
+	if len(keyList1.Keys) != len(keyList2.Keys) || len(keyList1.Keys) != len(keyList3.Keys) {
+		t.Errorf("Inconsistent number of keys across signing key list responses")
 	}
 
 	// Verify the order is the same in all responses
-	for i := range jwks1.Keys {
-		if jwks1.Keys[i].Kid != jwks2.Keys[i].Kid {
+	for i := range keyList1.Keys {
+		if keyList1.Keys[i].KeyId != keyList2.Keys[i].KeyId {
 			t.Errorf("Key order differs between responses 1 and 2 at index %d: %s vs %s",
-				i, jwks1.Keys[i].Kid, jwks2.Keys[i].Kid)
+				i, keyList1.Keys[i].KeyId, keyList2.Keys[i].KeyId)
 		}
-		if jwks1.Keys[i].Kid != jwks3.Keys[i].Kid {
+		if keyList1.Keys[i].KeyId != keyList3.Keys[i].KeyId {
 			t.Errorf("Key order differs between responses 1 and 3 at index %d: %s vs %s",
-				i, jwks1.Keys[i].Kid, jwks3.Keys[i].Kid)
+				i, keyList1.Keys[i].KeyId, keyList3.Keys[i].KeyId)
 		}
 	}
 
 	// Verify keys are sorted (alphanumeric order)
-	for i := 1; i < len(jwks1.Keys); i++ {
-		if jwks1.Keys[i-1].Kid > jwks1.Keys[i].Kid {
-			t.Errorf("Keys are not sorted: %s > %s", jwks1.Keys[i-1].Kid, jwks1.Keys[i].Kid)
+	for i := 1; i < len(keyList1.Keys); i++ {
+		if keyList1.Keys[i-1].KeyId > keyList1.Keys[i].KeyId {
+			t.Errorf("Keys are not sorted: %s > %s", keyList1.Keys[i-1].KeyId, keyList1.Keys[i].KeyId)
 		}
 	}
 

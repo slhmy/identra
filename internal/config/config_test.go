@@ -93,25 +93,6 @@ func TestPersistenceConfigValidateRejectsMongo(t *testing.T) {
 	}
 }
 
-func TestGatewayConfigValidateRejectsWildcardCORSWithCredentials(t *testing.T) {
-	cfg := GatewayConfig{
-		HTTPPort:     8080,
-		GRPCEndpoint: "localhost:50051",
-		CORS: CORSConfig{
-			AllowedOrigins:   []string{"*"},
-			AllowCredentials: true,
-		},
-	}
-
-	err := cfg.Validate()
-	if err == nil {
-		t.Fatal("expected wildcard CORS with credentials to fail")
-	}
-	if !strings.Contains(err.Error(), "cors config") {
-		t.Fatalf("expected error to identify CORS config area, got %q", err)
-	}
-}
-
 func validGRPCConfig() GRPCConfig {
 	return GRPCConfig{
 		GRPCPort: 50051,

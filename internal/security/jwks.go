@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"math/big"
 	"sort"
 	"sync"
 
@@ -18,10 +17,6 @@ import (
 const (
 	// RSAKeySize is the size of RSA keys in bits
 	RSAKeySize = 2048
-	// KeyAlgorithm is the algorithm used for signing
-	KeyAlgorithm = "RS256"
-	// KeyUsage indicates the key is used for signing
-	KeyUsage = "sig"
 )
 
 // KeyState represents the lifecycle state of a signing key
@@ -30,7 +25,7 @@ type KeyState string
 const (
 	// KeyStateActive indicates the key is currently used for signing new tokens
 	KeyStateActive KeyState = "ACTIVE"
-	// KeyStatePassive indicates the key is published in JWKS for verification but not used for signing
+	// KeyStatePassive indicates the key is published for verification but not used for signing.
 	KeyStatePassive KeyState = "PASSIVE"
 	// KeyStateRetired indicates the key is no longer published and should be removed
 	KeyStateRetired KeyState = "RETIRED"
@@ -222,14 +217,14 @@ func (km *KeyManager) IsInitialized() bool {
 	return km.privateKey != nil
 }
 
-// GetJWKS returns the JSON Web Key Set containing all ACTIVE and PASSIVE public keys.
+// ListSigningKeys returns all ACTIVE and PASSIVE public keys.
 // This enables smooth key rotation as both old and new keys are published during the transition.
-// Keys are sorted by KeyID to ensure deterministic output and stable ETags.
-func (km *KeyManager) GetJWKS() *identra_v1_pb.GetJWKSResponse {
+// Keys are sorted by key ID to ensure deterministic output.
+func (km *KeyManager) ListSigningKeys() *identra_v1_pb.ListSigningKeysResponse {
 	km.mu.RLock()
 	defer km.mu.RUnlock()
 
-	var keys []*identra_v1_pb.JSONWebKey
+	var keys []*identra_v1_pb.SigningKey
 
 	// Collect key IDs first to enable sorting for deterministic output
 	var keyIDs []string
@@ -242,29 +237,28 @@ func (km *KeyManager) GetJWKS() *identra_v1_pb.GetJWKSResponse {
 	// Sort key IDs to ensure deterministic order
 	sort.Strings(keyIDs)
 
-	// Build the JWKS response in sorted order
+	// Build the response in sorted order.
 	for _, keyID := range keyIDs {
 		entry := km.keys[keyID]
-		n := base64.RawURLEncoding.EncodeToString(entry.publicKey.N.Bytes())
-		e := base64.RawURLEncoding.EncodeToString(big.NewInt(int64(entry.publicKey.E)).Bytes())
-
-		keys = append(keys, &identra_v1_pb.JSONWebKey{
-			Kty: "RSA",
-			Alg: KeyAlgorithm,
-			Use: KeyUsage,
-			Kid: entry.keyID,
-			N:   &n,
-			E:   &e,
+		keys = append(keys, &identra_v1_pb.SigningKey{
+			KeyId:     entry.keyID,
+			Algorithm: identra_v1_pb.SigningAlgorithm_SIGNING_ALGORITHM_RS256,
+			PublicKey: &identra_v1_pb.SigningKey_Rsa{
+				Rsa: &identra_v1_pb.RsaPublicKey{
+					Modulus:  entry.publicKey.N.Bytes(),
+					Exponent: uint32(entry.publicKey.E),
+				},
+			},
 		})
 	}
 
-	return &identra_v1_pb.GetJWKSResponse{
+	return &identra_v1_pb.ListSigningKeysResponse{
 		Keys: keys,
 	}
 }
 
 // AddKeyPassive adds a new key to the key ring in PASSIVE state.
-// This allows the key to be published in JWKS for verification before promoting it to ACTIVE.
+// This allows the key to be published for verification before promoting it to ACTIVE.
 func (km *KeyManager) AddKeyPassive() (string, error) {
 	km.mu.Lock()
 	defer km.mu.Unlock()

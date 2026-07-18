@@ -59,7 +59,10 @@ func main() {
 			logging.UnaryServerInterceptor(InterceptorLogger(slog.Default())),
 		),
 	)
-	identra_v1_pb.RegisterIdentraServiceServer(grpcServer, authService)
+	identra_v1_pb.RegisterAuthServiceServer(grpcServer, authService)
+	identra_v1_pb.RegisterSessionServiceServer(grpcServer, authService)
+	identra_v1_pb.RegisterUserServiceServer(grpcServer, authService)
+	identra_v1_pb.RegisterKeyServiceServer(grpcServer, authService)
 	healthServer := health.NewServer()
 	healthServer.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)

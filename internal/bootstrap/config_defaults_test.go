@@ -9,10 +9,6 @@ import (
 func TestInitConfigAppliesDefaults(t *testing.T) {
 	unsetConfigEnv(t,
 		"GRPC_PORT",
-		"HTTP_PORT",
-		"GRPC_ENDPOINT",
-		"CORS_ALLOWED_ORIGINS",
-		"CORS_ALLOW_CREDENTIALS",
 		"LOG_LEVEL",
 		"LOG_FORMAT",
 		"AUTH_OAUTH_STATE_EXPIRATION",
@@ -32,18 +28,6 @@ func TestInitConfigAppliesDefaults(t *testing.T) {
 
 	if got := config.GetUint("grpc_port"); got != 50051 {
 		t.Fatalf("expected default grpc_port 50051, got %d", got)
-	}
-	if got := config.GetUint("http_port"); got != 8080 {
-		t.Fatalf("expected default http_port 8080, got %d", got)
-	}
-	if got := config.GetString("grpc_endpoint"); got != "localhost:50051" {
-		t.Fatalf("expected default grpc_endpoint localhost:50051, got %q", got)
-	}
-	if got := config.GetStringSlice("cors.allowed_origins"); len(got) != 3 || got[0] != "http://localhost:3000" {
-		t.Fatalf("expected default local cors origins, got %#v", got)
-	}
-	if got := config.GetBool("cors.allow_credentials"); !got {
-		t.Fatal("expected cors credentials to be allowed by default")
 	}
 	if got := config.GetString(configKeyLogLevel); got != "info" {
 		t.Fatalf("expected default log level info, got %q", got)

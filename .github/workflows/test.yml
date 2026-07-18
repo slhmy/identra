@@ -40,8 +40,6 @@ jobs:
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
-          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
-          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Install sqlc
@@ -61,10 +59,6 @@ jobs:
 
       - name: Lint protobuf
         run: buf lint
-
-      - name: Check protobuf breaking changes
-        if: github.event_name == 'pull_request'
-        run: buf breaking --against '.git#branch=origin/main'
 
       - name: Check generated files are current
         run: |

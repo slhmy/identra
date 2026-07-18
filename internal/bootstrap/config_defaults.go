@@ -4,14 +4,6 @@ import "github.com/spf13/viper"
 
 func applyConfigDefaults(v *viper.Viper) {
 	v.SetDefault("grpc_port", 50051)
-	v.SetDefault("http_port", 8080)
-	v.SetDefault("grpc_endpoint", "localhost:50051")
-	v.SetDefault("cors.allowed_origins", []string{
-		"http://localhost:3000",
-		"http://localhost:5173",
-		"http://localhost:8080",
-	})
-	v.SetDefault("cors.allow_credentials", true)
 
 	v.SetDefault(configKeyLogLevel, "info")
 	v.SetDefault(configKeyLogFormat, logFormatTint)

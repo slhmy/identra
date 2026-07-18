@@ -12,12 +12,8 @@ func logConfig() {
 		"log.format", config.GetString(configKeyLogFormat),
 	)
 
-	// Log server configuration based on the command
-	switch cmdName {
-	case "grpc":
+	if cmdName == "grpc" {
 		logGRPCConfig()
-	case "gateway":
-		logGatewayConfig()
 	}
 }
 
@@ -33,14 +29,5 @@ func logGRPCConfig() {
 		"auth.access_token_expiration", config.GetString("auth.access_token_expiration"),
 		"auth.refresh_token_expiration", config.GetString("auth.refresh_token_expiration"),
 		"auth.token_issuer", config.GetString("auth.token_issuer"),
-	)
-}
-
-func logGatewayConfig() {
-	slog.Info("Gateway server configuration",
-		"http_port", config.GetUint("http_port"),
-		"grpc_endpoint", config.GetString("grpc_endpoint"),
-		"cors.allowed_origins", config.GetStringSlice("cors.allowed_origins"),
-		"cors.allow_credentials", config.GetBool("cors.allow_credentials"),
 	)
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // TokenType represents the type of JWT token.
@@ -102,14 +103,13 @@ func NewTokenPair(
 
 	return &identra_v1_pb.TokenPair{
 		AccessToken: &identra_v1_pb.Token{
-			Token:     accessToken,
-			ExpiresAt: accessExpiresAt.Unix(),
+			Value:     accessToken,
+			ExpiresAt: timestamppb.New(accessExpiresAt),
 		},
 		RefreshToken: &identra_v1_pb.Token{
-			Token:     refreshToken,
-			ExpiresAt: refreshExpiresAt.Unix(),
+			Value:     refreshToken,
+			ExpiresAt: timestamppb.New(refreshExpiresAt),
 		},
-		TokenType: "Bearer",
 	}, nil
 }
 

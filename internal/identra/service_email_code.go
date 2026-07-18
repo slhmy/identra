@@ -15,10 +15,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Service) SendLoginEmailCode(
+func (s *Service) RequestEmailLoginCode(
 	ctx context.Context,
-	req *identra_v1_pb.SendLoginEmailCodeRequest,
-) (*identra_v1_pb.SendLoginEmailCodeResponse, error) {
+	req *identra_v1_pb.RequestEmailLoginCodeRequest,
+) (*identra_v1_pb.RequestEmailLoginCodeResponse, error) {
 	if s.mailer == nil {
 		return nil, status.Error(codes.FailedPrecondition, "mail service is disabled")
 	}
@@ -61,7 +61,7 @@ func (s *Service) SendLoginEmailCode(
 		return nil, status.Error(codes.Internal, "failed to send verification email")
 	}
 
-	return &identra_v1_pb.SendLoginEmailCodeResponse{}, nil
+	return &identra_v1_pb.RequestEmailLoginCodeResponse{}, nil
 }
 
 func (s *Service) sendVerificationCode(to string, code string, expiryMinutes int, useHTML bool) error {
@@ -118,10 +118,10 @@ func (s *Service) sendVerificationCode(to string, code string, expiryMinutes int
 	})
 }
 
-func (s *Service) LoginByEmailCode(
+func (s *Service) LoginWithEmailCode(
 	ctx context.Context,
-	req *identra_v1_pb.LoginByEmailCodeRequest,
-) (*identra_v1_pb.LoginByEmailCodeResponse, error) {
+	req *identra_v1_pb.LoginWithEmailCodeRequest,
+) (*identra_v1_pb.LoginWithEmailCodeResponse, error) {
 	email := strings.TrimSpace(req.GetEmail())
 	code := strings.TrimSpace(req.GetCode())
 	if email == "" || code == "" {
@@ -177,7 +177,7 @@ func (s *Service) LoginByEmailCode(
 		return nil, status.Error(codes.Internal, "failed to create token pair")
 	}
 
-	return &identra_v1_pb.LoginByEmailCodeResponse{Token: tokenPair}, nil
+	return &identra_v1_pb.LoginWithEmailCodeResponse{Tokens: tokenPair}, nil
 }
 
 func generateEmailCode() (string, error) {

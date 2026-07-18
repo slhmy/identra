@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Service) RefreshToken(
+func (s *Service) RefreshSession(
 	ctx context.Context,
-	req *identra_v1_pb.RefreshTokenRequest,
-) (*identra_v1_pb.RefreshTokenResponse, error) {
+	req *identra_v1_pb.RefreshSessionRequest,
+) (*identra_v1_pb.RefreshSessionResponse, error) {
 	refreshToken := strings.TrimSpace(req.GetRefreshToken())
 	if refreshToken == "" {
 		return nil, status.Error(codes.InvalidArgument, "refresh token is required")
@@ -37,13 +37,13 @@ func (s *Service) RefreshToken(
 		return nil, err
 	}
 
-	return &identra_v1_pb.RefreshTokenResponse{Token: tokenPair}, nil
+	return &identra_v1_pb.RefreshSessionResponse{Tokens: tokenPair}, nil
 }
 
-func (s *Service) RevokeRefreshToken(
+func (s *Service) RevokeSession(
 	ctx context.Context,
-	req *identra_v1_pb.RevokeRefreshTokenRequest,
-) (*identra_v1_pb.RevokeRefreshTokenResponse, error) {
+	req *identra_v1_pb.RevokeSessionRequest,
+) (*identra_v1_pb.RevokeSessionResponse, error) {
 	refreshToken := strings.TrimSpace(req.GetRefreshToken())
 	if refreshToken == "" {
 		return nil, status.Error(codes.InvalidArgument, "refresh token is required")
@@ -60,7 +60,7 @@ func (s *Service) RevokeRefreshToken(
 		return nil, err
 	}
 
-	return &identra_v1_pb.RevokeRefreshTokenResponse{}, nil
+	return &identra_v1_pb.RevokeSessionResponse{}, nil
 }
 
 func (s *Service) ensureRefreshTokenActive(ctx context.Context, claims *security.StandardClaims) error {

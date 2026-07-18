@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"log/slog"
-	"sort"
 	"strings"
 
 	identra_v1_pb "github.com/slhmy/identra/gen/go/identra/v1"
@@ -16,53 +15,32 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var supportedProviders = map[string]struct{}{
-	"github": {},
-}
-
 func (s *Service) ListOAuthProviders(
 	_ context.Context,
 	_ *identra_v1_pb.ListOAuthProvidersRequest,
 ) (*identra_v1_pb.ListOAuthProvidersResponse, error) {
-	names := make([]string, 0, len(supportedProviders))
-	for name := range supportedProviders {
-		names = append(names, name)
+	github := &identra_v1_pb.AuthProviderStatus{
+		Provider: identra_v1_pb.AuthProvider_AUTH_PROVIDER_GITHUB,
 	}
-	sort.Strings(names)
-
-	providers := make([]*identra_v1_pb.OAuthProviderStatus, 0, len(names))
-	for _, name := range names {
-		ps := &identra_v1_pb.OAuthProviderStatus{Name: name}
-
-		switch name {
-		case "github":
-			if s.githubOAuthConfig.ClientID == "" {
-				reason := "missing_client_id"
-				ps.Reason = &reason
-			} else if s.githubOAuthConfig.ClientSecret == "" {
-				reason := "missing_client_secret"
-				ps.Reason = &reason
-			} else {
-				ps.Enabled = true
-			}
-		}
-
-		providers = append(providers, ps)
+	switch {
+	case s.githubOAuthConfig.ClientID == "":
+		github.UnavailableReason = identra_v1_pb.AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_ID
+	case s.githubOAuthConfig.ClientSecret == "":
+		github.UnavailableReason = identra_v1_pb.AuthProviderUnavailableReason_AUTH_PROVIDER_UNAVAILABLE_REASON_MISSING_CLIENT_SECRET
+	default:
+		github.Enabled = true
 	}
 
-	return &identra_v1_pb.ListOAuthProvidersResponse{Providers: providers}, nil
+	return &identra_v1_pb.ListOAuthProvidersResponse{Providers: []*identra_v1_pb.AuthProviderStatus{github}}, nil
 }
 
-func (s *Service) GetOAuthAuthorizationURL(
+func (s *Service) StartOAuthLogin(
 	ctx context.Context,
-	req *identra_v1_pb.GetOAuthAuthorizationURLRequest,
-) (*identra_v1_pb.GetOAuthAuthorizationURLResponse, error) {
-	provider := strings.ToLower(strings.TrimSpace(req.GetProvider()))
-	if provider == "" {
-		return nil, status.Error(codes.InvalidArgument, "provider is required")
-	}
-	if _, ok := supportedProviders[provider]; !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "provider %s not supported", provider)
+	req *identra_v1_pb.StartOAuthLoginRequest,
+) (*identra_v1_pb.StartOAuthLoginResponse, error) {
+	provider, ok := authProviderName(req.GetProvider())
+	if !ok {
+		return nil, status.Error(codes.InvalidArgument, "provider is required and must be supported")
 	}
 
 	redirectURL := strings.TrimSpace(req.GetRedirectUrl())
@@ -85,13 +63,13 @@ func (s *Service) GetOAuthAuthorizationURL(
 	}
 
 	authURL := oauthCfg.AuthCodeURL(state, oauth2.AccessTypeOffline)
-	return &identra_v1_pb.GetOAuthAuthorizationURLResponse{Url: authURL, State: state}, nil
+	return &identra_v1_pb.StartOAuthLoginResponse{AuthorizationUrl: authURL, State: state}, nil
 }
 
-func (s *Service) LoginByOAuth(
+func (s *Service) LoginWithOAuth(
 	ctx context.Context,
-	req *identra_v1_pb.LoginByOAuthRequest,
-) (*identra_v1_pb.LoginByOAuthResponse, error) {
+	req *identra_v1_pb.LoginWithOAuthRequest,
+) (*identra_v1_pb.LoginWithOAuthResponse, error) {
 	if strings.TrimSpace(req.GetCode()) == "" {
 		return nil, status.Error(codes.InvalidArgument, "code is required")
 	}
@@ -139,21 +117,23 @@ func (s *Service) LoginByOAuth(
 		return nil, status.Error(codes.Internal, "failed to create token pair")
 	}
 
-	return &identra_v1_pb.LoginByOAuthResponse{
-		Token:     tokenPair,
-		Username:  userInfo.Username,
-		AvatarUrl: userInfo.AvatarURL,
-		Email:     userInfo.Email,
+	return &identra_v1_pb.LoginWithOAuthResponse{
+		Tokens: tokenPair,
+		Profile: &identra_v1_pb.OAuthUserProfile{
+			Username:  userInfo.Username,
+			AvatarUrl: userInfo.AvatarURL,
+			Email:     userInfo.Email,
+		},
 	}, nil
 }
 
-func (s *Service) BindUserByOAuth(
+func (s *Service) LinkOAuthAccount(
 	ctx context.Context,
-	req *identra_v1_pb.BindUserByOAuthRequest,
-) (*identra_v1_pb.BindUserByOAuthResponse, error) {
-	accessToken := accessTokenFromRequest(ctx, req.GetAccessToken())
+	req *identra_v1_pb.LinkOAuthAccountRequest,
+) (*identra_v1_pb.LinkOAuthAccountResponse, error) {
+	accessToken := accessTokenFromMetadata(ctx)
 	if accessToken == "" {
-		return nil, status.Error(codes.InvalidArgument, "access token is required")
+		return nil, status.Error(codes.Unauthenticated, "access token is required")
 	}
 	if strings.TrimSpace(req.GetCode()) == "" {
 		return nil, status.Error(codes.InvalidArgument, "code is required")
@@ -164,7 +144,7 @@ func (s *Service) BindUserByOAuth(
 
 	claims, err := security.ValidateAccessToken(accessToken, s.tokenCfg.PublicKey)
 	if err != nil {
-		slog.WarnContext(ctx, "invalid access token for bind", "error", err)
+		slog.WarnContext(ctx, "invalid access token for link oauth account", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "invalid access token")
 	}
 
@@ -189,7 +169,7 @@ func (s *Service) BindUserByOAuth(
 	oauthCfg := s.oauthConfigForRedirect(stateData.RedirectURL)
 	token, err := oauthCfg.Exchange(ctx, req.GetCode())
 	if err != nil {
-		slog.ErrorContext(ctx, "oauth code exchange failed (bind)", "error", err)
+		slog.ErrorContext(ctx, "oauth code exchange failed (link)", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "failed to exchange authorization code")
 	}
 
@@ -200,11 +180,11 @@ func (s *Service) BindUserByOAuth(
 
 	userInfo, err := userProvider.GetUserInfo(ctx, token.AccessToken)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to fetch user info (bind)", "error", err)
+		slog.ErrorContext(ctx, "failed to fetch user info (link)", "error", err)
 		return nil, status.Error(codes.Unauthenticated, "failed to fetch user info")
 	}
 	if userInfo.ID == "" {
-		slog.ErrorContext(ctx, "provider returned empty user id (bind)", "provider", stateData.Provider)
+		slog.ErrorContext(ctx, "provider returned empty user id (link)", "provider", stateData.Provider)
 		return nil, status.Error(codes.Internal, "provider returned empty user id")
 	}
 
@@ -244,15 +224,36 @@ func (s *Service) BindUserByOAuth(
 	s.recordLogin(ctx, bindingUser)
 	tokenPair, err := security.NewTokenPair(bindingUser.ID, s.tokenCfg)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to create token pair (bind)", "error", err)
+		slog.ErrorContext(ctx, "failed to create token pair (link)", "error", err)
 		return nil, status.Error(codes.Internal, "failed to create token pair")
 	}
 
-	return &identra_v1_pb.BindUserByOAuthResponse{
-		Token:     tokenPair,
-		Username:  userInfo.Username,
-		AvatarUrl: userInfo.AvatarURL,
+	return &identra_v1_pb.LinkOAuthAccountResponse{
+		Tokens: tokenPair,
+		Profile: &identra_v1_pb.OAuthUserProfile{
+			Username:  userInfo.Username,
+			AvatarUrl: userInfo.AvatarURL,
+			Email:     userInfo.Email,
+		},
 	}, nil
+}
+
+func authProviderName(provider identra_v1_pb.AuthProvider) (string, bool) {
+	switch provider {
+	case identra_v1_pb.AuthProvider_AUTH_PROVIDER_GITHUB:
+		return "github", true
+	default:
+		return "", false
+	}
+}
+
+func authProviderValue(provider string) identra_v1_pb.AuthProvider {
+	switch strings.ToLower(strings.TrimSpace(provider)) {
+	case "github":
+		return identra_v1_pb.AuthProvider_AUTH_PROVIDER_GITHUB
+	default:
+		return identra_v1_pb.AuthProvider_AUTH_PROVIDER_UNSPECIFIED
+	}
 }
 
 func (s *Service) ensureOAuthUser(ctx context.Context, info UserInfo) (*UserModel, error) {

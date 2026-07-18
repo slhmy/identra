@@ -10,11 +10,9 @@ GOLANGCI_LINT := $(LOCAL_BIN)/golangci-lint
 
 PROTO_TOOLS := \
 	google.golang.org/protobuf/cmd/protoc-gen-go \
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-	github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
-	github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
-.PHONY: dev dev-infra dev-down run-grpc run-gateway verify test test-integration vet lint proto-lint arch-check generate generate-check tools proto-tools clean-tools
+.PHONY: dev dev-infra dev-down run-grpc verify test test-integration vet lint proto-lint arch-check generate generate-check tools proto-tools clean-tools
 
 verify: vet test lint arch-check generate-check
 
@@ -35,9 +33,6 @@ run-grpc:
 	SMTP_MAILER_START_TLS=false \
 	SMTP_MAILER_AUTH_ENABLED=false \
 	$(GO) run ./cmd/identra-grpc
-
-run-gateway:
-	$(GO) run ./cmd/identra-gateway
 
 test:
 	$(GO) test ./...

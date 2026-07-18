@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package identra.v1;
+
+import "identra/v1/types.proto";
+
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
+
+service AuthService {
+  rpc RegisterWithPassword(RegisterWithPasswordRequest) returns (RegisterWithPasswordResponse);
+  rpc LoginWithPassword(LoginWithPasswordRequest) returns (LoginWithPasswordResponse);
+  rpc RequestEmailLoginCode(RequestEmailLoginCodeRequest) returns (RequestEmailLoginCodeResponse);
+  rpc LoginWithEmailCode(LoginWithEmailCodeRequest) returns (LoginWithEmailCodeResponse);
+  rpc ListOAuthProviders(ListOAuthProvidersRequest) returns (ListOAuthProvidersResponse);
+  rpc StartOAuthLogin(StartOAuthLoginRequest) returns (StartOAuthLoginResponse);
+  rpc LoginWithOAuth(LoginWithOAuthRequest) returns (LoginWithOAuthResponse);
+}
+
+message RegisterWithPasswordRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterWithPasswordResponse {
+  TokenPair tokens = 1;
+}
+
+message LoginWithPasswordRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginWithPasswordResponse {
+  TokenPair tokens = 1;
+}
+
+message RequestEmailLoginCodeRequest {
+  string email = 1;
+  bool use_html = 2;
+}
+
+message RequestEmailLoginCodeResponse {}
+
+message LoginWithEmailCodeRequest {
+  string email = 1;
+  string code = 2;
+}
+
+message LoginWithEmailCodeResponse {
+  TokenPair tokens = 1;
+}
+
+message ListOAuthProvidersRequest {}
+
+message ListOAuthProvidersResponse {
+  repeated AuthProviderStatus providers = 1;
+}
+
+message StartOAuthLoginRequest {
+  AuthProvider provider = 1;
+  string redirect_url = 2;
+}
+
+message StartOAuthLoginResponse {
+  string authorization_url = 1;
+  string state = 2;
+}
+
+message LoginWithOAuthRequest {
+  string code = 1;
+  string state = 2;
+}
+
+message LoginWithOAuthResponse {
+  TokenPair tokens = 1;
+  OAuthUserProfile profile = 2;
+}

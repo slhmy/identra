@@ -3,13 +3,7 @@ package config
 // Configuration keys constants
 const (
 	// Server configuration keys
-	GRPCPortKey     = "grpc_port"
-	HTTPPortKey     = "http_port"
-	GRPCEndpointKey = "grpc_endpoint"
-
-	// CORS configuration keys
-	CORSAllowedOriginsKey   = "cors.allowed_origins"
-	CORSAllowCredentialsKey = "cors.allow_credentials"
+	GRPCPortKey = "grpc_port"
 
 	// Auth configuration keys
 	AuthRSAPrivateKeyKey            = "auth.rsa_private_key"
