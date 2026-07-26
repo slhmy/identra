@@ -247,6 +247,26 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 	return items, nil
 }
 
+const setUserPassword = `-- name: SetUserPassword :execrows
+UPDATE users
+SET hashed_password = ?, updated_at = ?
+WHERE id = ? AND deleted_at IS NULL
+`
+
+type SetUserPasswordParams struct {
+	HashedPassword sql.NullString `json:"hashed_password"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	ID             string         `json:"id"`
+}
+
+func (q *Queries) SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, setUserPassword, arg.HashedPassword, arg.UpdatedAt, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const softDeleteUser = `-- name: SoftDeleteUser :execrows
 UPDATE users
 SET deleted_at = ?, updated_at = ?

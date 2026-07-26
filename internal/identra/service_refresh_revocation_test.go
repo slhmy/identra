@@ -44,6 +44,7 @@ func TestRefreshSessionRevokesUsedRefreshToken(t *testing.T) {
 	svc := &Service{
 		tokenCfg:                tokenCfg,
 		refreshTokenRevocations: newMockRefreshTokenRevocationStore(),
+		userStore:               userStoreWithUser("uid-refresh"),
 	}
 	req := &identra_v1_pb.RefreshSessionRequest{RefreshToken: pair.RefreshToken.Value}
 
@@ -64,6 +65,7 @@ func TestRevokeSessionBlocksRefresh(t *testing.T) {
 	svc := &Service{
 		tokenCfg:                tokenCfg,
 		refreshTokenRevocations: newMockRefreshTokenRevocationStore(),
+		userStore:               userStoreWithUser("uid-revoke"),
 	}
 
 	_, err = svc.RevokeSession(context.Background(), &identra_v1_pb.RevokeSessionRequest{
@@ -77,4 +79,22 @@ func TestRevokeSessionBlocksRefresh(t *testing.T) {
 		RefreshToken: pair.RefreshToken.Value,
 	})
 	requireCode(t, err, codes.Unauthenticated)
+}
+
+func TestRefreshSessionRejectsDeletedUser(t *testing.T) {
+	tokenCfg := newTestTokenConfig(t)
+	pair, err := security.NewTokenPair("deleted-user", tokenCfg)
+	if err != nil {
+		t.Fatalf("failed to create token pair: %v", err)
+	}
+
+	svc := &Service{tokenCfg: tokenCfg, userStore: newMockUserStore()}
+	_, err = svc.RefreshSession(context.Background(), &identra_v1_pb.RefreshSessionRequest{RefreshToken: pair.RefreshToken.Value})
+	requireCode(t, err, codes.Unauthenticated)
+}
+
+func userStoreWithUser(id string) *mockUserStore {
+	store := newMockUserStore()
+	store.users[id] = &UserModel{ID: id, Email: id + "@example.com"}
+	return store
 }

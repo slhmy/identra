@@ -14,6 +14,7 @@ var (
 	_ identra_v1_pb.UserServiceServer           = (*Service)(nil)
 	_ identra_v1_pb.KeyServiceServer            = (*Service)(nil)
 	_ identra_v1_pb.ServiceAccountServiceServer = (*Service)(nil)
+	_ identra_v1_pb.UserManagementServiceServer = (*Service)(nil)
 	_ identra_v1_pb.AuditServiceServer          = (*Service)(nil)
 	_ identra_v1_pb.SystemServiceServer         = (*Service)(nil)
 )
@@ -30,6 +31,9 @@ func TestPublicGRPCServices(t *testing.T) {
 		"identra.v1.ServiceAccountService": {
 			"ExchangeServiceToken", "CreateServiceAccount", "ListServiceAccounts",
 			"DisableServiceAccount", "RotateServiceAccountSecret",
+		},
+		"identra.v1.UserManagementService": {
+			"ListUsers", "CreatePasswordUser", "DeleteUser", "ResetUserPassword",
 		},
 		"identra.v1.AuditService":  {"ListAuditEvents"},
 		"identra.v1.SystemService": {"GetServerInfo"},

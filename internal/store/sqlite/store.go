@@ -109,6 +109,21 @@ func (s *UserStore) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+func (s *UserStore) SetPassword(ctx context.Context, id, hashedPassword string) error {
+	rows, err := s.queries.SetUserPassword(ctx, sqlitedb.SetUserPasswordParams{
+		ID:             id,
+		HashedPassword: sql.NullString{String: hashedPassword, Valid: true},
+		UpdatedAt:      time.Now().UTC(),
+	})
+	if err != nil {
+		return wrapError(err)
+	}
+	if rows == 0 {
+		return identra.ErrNotFound
+	}
+	return nil
+}
+
 func (s *UserStore) List(ctx context.Context, offset, limit int) ([]*identra.UserModel, error) {
 	if offset < 0 {
 		offset = 0

@@ -72,7 +72,7 @@ func buildIdentraDependencies(ctx context.Context, cfg config.GRPCConfig) (ident
 			SchemaVersion: sqlite.CurrentSchemaVersion,
 			Capabilities: []string{
 				"auth.password", "auth.email_code", "auth.oauth.github",
-				"service_accounts", "audit_events",
+				"service_accounts", "user_management", "audit_events",
 			},
 		},
 	}, nil

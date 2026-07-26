@@ -10,6 +10,7 @@ The public API is defined in `proto/identra/v1` and split by responsibility:
 - `identra.v1.AuthService`: registration and login flows
 - `identra.v1.SessionService`: refresh and revoke sessions
 - `identra.v1.UserService`: current-user data and OAuth account linking
+- `identra.v1.UserManagementService`: privileged user listing, creation, deletion, and password reset
 - `identra.v1.KeyService`: public signing keys for JWT verification
 - `identra.v1.ServiceAccountService`: service-token exchange and scoped machine-identity management
 - `identra.v1.AuditService`: paginated management audit events
@@ -153,8 +154,9 @@ docker compose run --rm --no-deps \
 
 The CLI connects to `localhost:50051` without TLS by default, matching the local
 server. Use `--endpoint` for another address and `--tls` when TLS terminates at
-an upstream proxy. The built-in scopes are `identra.admin`,
-`identra.service_accounts.manage`, `identra.service_accounts.read`, and `identra.audit.read`.
+an upstream proxy. The built-in scopes are `identra.admin`, `identra.users.manage`,
+`identra.users.read`, `identra.service_accounts.manage`, `identra.service_accounts.read`, and
+`identra.audit.read`.
 Use `identra audit list` to inspect management activity and `identra server-info` to discover the
 running version and capabilities.
 

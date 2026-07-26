@@ -193,6 +193,7 @@ func serve() error {
 	identra_v1_pb.RegisterUserServiceServer(grpcServer, authService)
 	identra_v1_pb.RegisterKeyServiceServer(grpcServer, authService)
 	identra_v1_pb.RegisterServiceAccountServiceServer(grpcServer, authService)
+	identra_v1_pb.RegisterUserManagementServiceServer(grpcServer, authService)
 	identra_v1_pb.RegisterAuditServiceServer(grpcServer, authService)
 	identra_v1_pb.RegisterSystemServiceServer(grpcServer, authService)
 	healthServer := health.NewServer()

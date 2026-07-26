@@ -8,6 +8,7 @@
 - Sequential SQLite schema migrations with downgrade protection.
 - Scoped service accounts, short-lived Service Tokens, secret rotation, and offline bootstrap.
 - Service Token exchange rate limiting, management audit events, and server capability discovery.
+- Scoped user listing, creation, deletion, and password management for service accounts.
 - Idempotent startup bootstrap for volume-based platforms such as Railway.
 - Cross-platform release archives, checksums, multi-architecture images, and restart smoke tests.
 
@@ -15,6 +16,7 @@
 
 - The public API is gRPC-only and split into domain services.
 - Protected RPC authentication uses Bearer metadata and protocol messages are strongly typed.
+- Refreshing a session now verifies that its user still exists.
 
 ### Removed
 

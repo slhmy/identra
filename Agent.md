@@ -7,6 +7,7 @@ Identra exposes a gRPC-only authentication and user-management API on `identra.v
 - `AuthService`: password, email-code, and OAuth authentication
 - `SessionService`: refresh-token rotation and revocation
 - `UserService`: current-user data and OAuth account linking
+- `UserManagementService`: privileged user lifecycle and password management
 - `KeyService`: typed RSA public keys for JWT verification
 - `ServiceAccountService`: Service Token exchange and scoped machine-identity management
 - `AuditService`: management audit history (requires `identra.audit.read`)
@@ -46,6 +47,9 @@ Available management scopes are:
 - `identra.admin`: all management permissions
 - `identra.service_accounts.manage`: create, rotate, disable, and list
 - `identra.service_accounts.read`: list only
+- `identra.users.manage`: create, delete, reset passwords, and list users
+- `identra.users.read`: list users only
+- `identra.audit.read`: list management audit events
 
 ## Common flows
 

@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package identra.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/slhmy/identra/gen/go/identra/v1;identra_v1_pb";
+
+// UserManagementService manages users through privileged service tokens.
+service UserManagementService {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc CreatePasswordUser(CreatePasswordUserRequest) returns (CreatePasswordUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc ResetUserPassword(ResetUserPasswordRequest) returns (ResetUserPasswordResponse);
+}
+
+message ManagedUser {
+  string id = 1;
+  string email = 2;
+  bool password_login_enabled = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  google.protobuf.Timestamp last_login_at = 6;
+}
+
+message ListUsersRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListUsersResponse {
+  repeated ManagedUser users = 1;
+  string next_page_token = 2;
+}
+
+message CreatePasswordUserRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message CreatePasswordUserResponse {
+  ManagedUser user = 1;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message DeleteUserResponse {}
+
+message ResetUserPasswordRequest {
+  string user_id = 1;
+  string password = 2;
+}
+
+message ResetUserPasswordResponse {
+  ManagedUser user = 1;
+}

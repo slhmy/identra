@@ -9,6 +9,7 @@ type UserStore interface {
 	GetByID(ctx context.Context, id string) (*UserModel, error)
 	GetByEmail(ctx context.Context, email string) (*UserModel, error)
 	Update(ctx context.Context, user *UserModel) error
+	SetPassword(ctx context.Context, id, hashedPassword string) error
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, offset, limit int) ([]*UserModel, error)
 	Count(ctx context.Context) (int64, error)

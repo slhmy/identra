@@ -16,6 +16,7 @@ type Service struct {
 	identra_v1_pb.UnimplementedUserServiceServer
 	identra_v1_pb.UnimplementedKeyServiceServer
 	identra_v1_pb.UnimplementedServiceAccountServiceServer
+	identra_v1_pb.UnimplementedUserManagementServiceServer
 	identra_v1_pb.UnimplementedAuditServiceServer
 	identra_v1_pb.UnimplementedSystemServiceServer
 

@@ -35,6 +35,11 @@ UPDATE users
 SET deleted_at = ?, updated_at = ?
 WHERE id = ? AND deleted_at IS NULL;
 
+-- name: SetUserPassword :execrows
+UPDATE users
+SET hashed_password = ?, updated_at = ?
+WHERE id = ? AND deleted_at IS NULL;
+
 -- name: ListUsers :many
 SELECT id, created_at, updated_at, deleted_at, email, hashed_password, hash, last_login_at
 FROM users

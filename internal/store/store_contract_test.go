@@ -93,6 +93,13 @@ func runUserStoreContract(t *testing.T, factory storeFactory) {
 	if updated.LastLoginAt == nil || !updated.LastLoginAt.Equal(lastLogin) {
 		t.Fatalf("updated last login = %v, want %v", updated.LastLoginAt, lastLogin)
 	}
+	if err := userStore.SetPassword(ctx, user.ID, "new-hash"); err != nil {
+		t.Fatalf("set password: %v", err)
+	}
+	updated, err = userStore.GetByID(ctx, user.ID)
+	if err != nil || updated.HashedPassword == nil || *updated.HashedPassword != "new-hash" {
+		t.Fatalf("set password user = %+v, error = %v", updated, err)
+	}
 
 	second := &identra.UserModel{Email: "second@example.com"}
 	if err := userStore.Create(ctx, second); err != nil {
@@ -123,6 +130,13 @@ func runUserStoreContract(t *testing.T, factory storeFactory) {
 	}
 	if err := userStore.Delete(ctx, user.ID); !errors.Is(err, identra.ErrNotFound) {
 		t.Fatalf("delete missing user error = %v, want %v", err, identra.ErrNotFound)
+	}
+	if err := userStore.SetPassword(ctx, user.ID, "revive-hash"); !errors.Is(err, identra.ErrNotFound) {
+		t.Fatalf("set deleted user password error = %v, want %v", err, identra.ErrNotFound)
+	}
+	reserved := &identra.UserModel{Email: user.Email}
+	if err := userStore.Create(ctx, reserved); !errors.Is(err, identra.ErrAlreadyExists) {
+		t.Fatalf("reuse deleted email error = %v, want %v", err, identra.ErrAlreadyExists)
 	}
 }
 

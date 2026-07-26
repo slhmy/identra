@@ -5,6 +5,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"testing"
+	"time"
 )
 
 // mockUserStore is a simple in-memory user store for testing.
@@ -51,6 +52,16 @@ func (m *mockUserStore) Update(ctx context.Context, user *UserModel) error {
 		return ErrNotFound
 	}
 	m.users[user.ID] = user
+	return nil
+}
+
+func (m *mockUserStore) SetPassword(_ context.Context, id, hashedPassword string) error {
+	user, ok := m.users[id]
+	if !ok {
+		return ErrNotFound
+	}
+	user.HashedPassword = &hashedPassword
+	user.UpdatedAt = time.Now().UTC()
 	return nil
 }
 

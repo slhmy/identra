@@ -17,6 +17,7 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id string) (User, error)
 	ListExternalIdentitiesByUserID(ctx context.Context, userID string) ([]ExternalIdentity, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (int64, error)
 	SoftDeleteUser(ctx context.Context, arg SoftDeleteUserParams) (int64, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int64, error)
 }

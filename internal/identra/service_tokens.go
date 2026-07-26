@@ -2,6 +2,7 @@ package identra
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"strings"
 
@@ -26,6 +27,13 @@ func (s *Service) RefreshSession(
 	}
 	if err := s.ensureRefreshTokenActive(ctx, claims); err != nil {
 		return nil, err
+	}
+	if _, err := s.userStore.GetByID(ctx, claims.UserID); err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, status.Error(codes.Unauthenticated, "user is inactive")
+		}
+		slog.ErrorContext(ctx, "failed to validate refresh-token user", "error", err)
+		return nil, status.Error(codes.Internal, "failed to validate refresh token")
 	}
 
 	tokenPair, err := security.NewTokenPair(claims.UserID, s.tokenCfg)
